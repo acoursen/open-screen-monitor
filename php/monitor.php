@@ -40,7 +40,7 @@ if (isset($_GET['images'])) {
 	$toReturn = array();
 
 	foreach ($_SESSION['alloweddevices'] as $deviceID=>$deviceName) {
-		$files = glob($dataDir.'/devices/'.$deviceID.'/*',GLOB_ONLYDIR);
+		$files = glob($dataDir.'/run/'.$deviceID.'/*',GLOB_ONLYDIR);
 		foreach ($files as $file){
 			$sessionID = basename($file);
 			$file .= '/screenshot.jpg';
@@ -60,125 +60,146 @@ if (isset($_GET['images'])) {
 	die(json_encode($toReturn));
 }
 
-// Actions are passed with the device id in the $_POST[] to get the full path we append that device id to the $dataDir.'/devices'
-if (isset($_POST['log'])){
-	if (isset($_SESSION['alloweddevices'][$_POST['log']])) {
-		$_actionPath = $dataDir.'/devices/'.$_POST['log'];
-		die(preg_replace("/\r\n|\r|\n/",'<br />',file_get_contents($_actionPath.'/log')));
-	}
-	die();
-}
 
-if (isset($_POST['lock'])){
-	if(isset($_POST['sessionID']) && is_numeric($_POST['sessionID']) && isset($_SESSION['alloweddevices'][$_POST['lock']])) {
-		$_actionPath = $dataDir.'/devices/'.$_POST['lock'].'/'.$_POST['sessionID'];
-		touch($_actionPath.'/lock');
-		logger(dirname($_actionPath).'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tlocked\t\n", $_config['logmax']);
-	}
-	die();
-}
 
-if (isset($_POST['unlock'])){
-	if (isset($_POST['sessionID']) && is_numeric($_POST['sessionID']) && isset($_SESSION['alloweddevices'][$_POST['unlock']])) {
-		$_actionPath = $dataDir.'/devices/'.$_POST['unlock'].'/'.$_POST['sessionID'];
-		if (file_exists($_actionPath.'/lock')) unlink($_actionPath.'/lock');
-		logger(dirname($_actionPath).'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tunlocked\t\n", $_config['logmax']);
-		touch($_actionPath.'/unlock');
-	}
-	die();
-}
 
-if (isset($_POST['openurl']) && isset($_POST['url'])){
-	if (isset($_POST['sessionID']) && is_numeric($_POST['sessionID']) && isset($_SESSION['alloweddevices'][$_POST['openurl']]) && filter_var($_POST['url'],FILTER_VALIDATE_URL,FILTER_FLAG_HOST_REQUIRED)) {
-		$_actionPath = $dataDir.'/devices/'.$_POST['openurl'].'/'.$_POST['sessionID'];
-		file_put_contents($_actionPath.'/openurl',$_POST['url']);
-		logger(dirname($_actionPath).'/log', date('YmdHis',time())."\t".$_SESSION['email']."\topenurl\t".$_POST['url']."\n", $_config['logmax']);
-	}
-	die();
-}
+// Actions are passed with the device/user id and session in the $_GET[]
+if (isset($_GET['action'])){
+	$action = $_GET['action'];
+	
+	//actions that require an (device\user) id
+	if (isset($_GET['id']) && isset($_SESSION['alloweddevices'][$_GET['id']]) && isset($_GET['sessionID']) && is_numeric($_GET['sessionID'])){
+		//$configFolder = $dataDir.'/config/'.$_GET['id'];
+		$runFolder = $dataDir.'/run/'.$_GET['id'].'/'.$_GET['sessionID'];
 
-if (isset($_POST['closetab']) && isset($_POST['tabid'])){
-	if (isset($_POST['sessionID']) && is_numeric($_POST['sessionID']) && isset($_SESSION['alloweddevices'][$_POST['closetab']])) {
-		$_actionPath = $dataDir.'/devices/'.$_POST['closetab'].'/'.$_POST['sessionID'];
-		file_put_contents($_actionPath.'/closetab',$_POST['tabid']."\n",FILE_APPEND);
-		//FIXME - add title of tab later
-		logger(dirname($_actionPath).'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tclosetab\t\n", $_config['logmax']);
-	}
-	die();
-}
-
-if (isset($_POST['closeAllTabs'])){
-	if (isset($_POST['sessionID']) && is_numeric($_POST['sessionID']) && isset($_SESSION['alloweddevices'][$_POST['closeAllTabs']])) {
-		$_actionPath = $dataDir.'/devices/'.$_POST['closeAllTabs'].'/'.$_POST['sessionID'];
-		if (file_exists($_actionPath.'/tabs')) {
-			$temp = json_decode(file_get_contents($_actionPath.'/tabs'),true);
-			foreach ($temp as $tab) {
-				//$tab['id']
-				file_put_contents($_actionPath.'/closetab',$tab['id']."\n",FILE_APPEND);
-				//FIXME - add title of tab later
-				logger(dirname($_actionPath).'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tclosetab\t\n", $_config['logmax']);
+		if ($action == 'getImage'){
+			$img = file_get_contents($runFolder.'/screenshot.jpg');
+			if ($img != ''){
+				echo $img;
+			} else {
+				header('Location: unavailable.jpg');
 			}
+			die();
 		}
 	}
+	
 	die();
 }
 
-if (isset($_POST['sendmessage'])){
-	if (isset($_POST['sessionID']) && is_numeric($_POST['sessionID']) && isset($_POST['message']) && isset($_SESSION['alloweddevices'][$_POST['sendmessage']])) {
-		$_actionPath = $dataDir.'/devices/'.$_POST['sendmessage'].'/'.$_POST['sessionID'];
-		file_put_contents($_actionPath.'/messages',$_SESSION['name']." says ... \t".$_POST['message']."\n",FILE_APPEND);
-		logger(dirname($_actionPath).'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tmessages\t".$_POST['message']."\n", $_config['logmax']);
-	}
-	die();
-}
+		
+		
+		
+// Actions are passed with the device/user id and session in the $_POST[]
+if (isset($_POST['action'])){
+	$action = $_POST['action'];
+	
+	//actions that require an (device\user) id
+	if (isset($_POST['id']) && isset($_SESSION['alloweddevices'][$_POST['id']])){
+		$configFolder = $dataDir.'/config/'.$_POST['id'];
+		file_exists($configFolder) || mkdir($configFolder);
 
-if (isset($_POST['screenshot'])){
-	if (isset($_POST['sessionID']) && is_numeric($_POST['sessionID']) && isset($_SESSION['alloweddevices'][$_POST['screenshot']])){
-		$_actionPath = $dataDir.'/devices/'.$_POST['screenshot']."/".$_POST['sessionID'];
-		if (file_exists($_actionPath."/screenshot.jpg")){
-			logger(dirname($_actionPath).'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tscreenshot\t\n", $_config['logmax']);
+		if ($action == 'log'){
+			die(preg_replace("/\r\n|\r|\n/",'<br />',file_get_contents($configFolder.'/log')));
+		}
 
-			$text = "Screenshot: ".date("Y-m-d h:i a")."\r\n\r\n";
-			if (file_exists($_actionPath.'/username')) $text .= "Username: ".file_get_contents($_actionPath.'/username')."\r\n";
-			if (file_exists($_actionPath.'/tabs')){
-				$tabs = json_decode(file_get_contents($_actionPath.'/tabs'),true);
-				foreach ($tabs as $tab){
-					$text .= "Open Tab: <".$tab['title']."> ".$tab['url']."\r\n";
+		//actions that require a session
+		if (isset($_POST['sessionID']) && is_numeric($_POST['sessionID'])){
+			$runFolder = $dataDir.'/run/'.$_POST['id'].'/'.$_POST['sessionID'];
+			
+			if ($action == 'openurl'){
+				if (isset($_POST['url']) && filter_var($_POST['url'],FILTER_VALIDATE_URL,FILTER_FLAG_HOST_REQUIRED)) {
+					file_put_contents($runFolder.'/openurl',$_POST['url']);
+					logger($configFolder.'/log', date('YmdHis',time())."\t".$_SESSION['email']."\topenurl\t".$_POST['url']."\n", $_config['logmax']);
 				}
+				die();
 			}
+			if ($action == 'closetab') {
+				if (isset($_POST['tabid'])){
+					file_put_contents($runFolder.'/closetab',$_POST['tabid']."\n",FILE_APPEND);
+					//FIXME - add title of tab later
+					logger($configFolder.'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tclosetab\t\n", $_config['logmax']);
+				}
+				die();
+			}
+			if ($action == 'closeAllTabs'){
+				if (file_exists($runFolder.'/tabs')) {
+					$temp = json_decode(file_get_contents($runFolder.'/tabs'),true);
+					foreach ($temp as $tab) {
+						//$tab['id']
+						file_put_contents($runFolder.'/closetab',$tab['id']."\n",FILE_APPEND);
+						//FIXME - add title of tab later
+						logger($configFolder.'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tclosealltab\t\n", $_config['logmax']);
+					}
+				}
+				die();
+			}
+			if ($action == 'lock'){
+				touch($runFolder.'/lock');
+				logger($configFolder.'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tlocked\t\n", $_config['logmax']);
+				die();
+			}
+			if ($action == 'unlock'){
+				if (file_exists($runFolder.'/lock')) unlink($runFolder.'/lock');
+				logger($configFolder.'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tunlocked\t\n", $_config['logmax']);
+				die();
+			}
+			if ($action == 'sendmessage'){
+				if (isset($_POST['message'])) {
+					file_put_contents($runFolder.'/messages',$_SESSION['name']." says ... \t".$_POST['message']."\n",FILE_APPEND);
+					logger($configFolder.'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tmessages\t".$_POST['message']."\n", $_config['logmax']);
+				}
+				die();
+			}
+			if ($action == 'screenshot'){
+				if (file_exists($runFolder."/screenshot.jpg")){
+					logger($configFolder.'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tscreenshot\t\n", $_config['logmax']);
 
-			$uid = md5(uniqid(time()));
+					$text = "Screenshot: ".date("Y-m-d h:i a")."\r\n\r\n";
+					if (file_exists($runFolder.'/username')) $text .= "Username: ".file_get_contents($runFolder.'/username')."\r\n";
+					if (file_exists($runFolder.'/tabs')){
+						$tabs = json_decode(file_get_contents($runFolder.'/tabs'),true);
+						foreach ($tabs as $tab){
+							$text .= "Open Tab: <".$tab['title']."> ".$tab['url']."\r\n";
+						}
+					}
 
-			// header
-			$header = "From: Open Screen Monitor <".$_SESSION['email'].">\r\n";
-			$header .= "MIME-Version: 1.0\r\n";
-			$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"\r\n\r\n";
+					$uid = md5(uniqid(time()));
 
-			// message & attachment
-			$raw = "--".$uid."\r\n";
-			$raw .= "Content-type:text/plain; charset=iso-8859-1\r\n";
-			$raw .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
-			$raw .= "$text\r\n\r\n";
-			$raw .= "--".$uid."\r\n";
-			$raw .= "Content-Type: image/jpeg; name=\"screenshot.jpg\"\r\n";
-			$raw .= "Content-Transfer-Encoding: base64\r\n";
-			$raw .= "Content-Disposition: attachment; filename=\"screenshot.jpg\"\r\n\r\n";
-			$raw .= chunk_split(base64_encode(file_get_contents($_actionPath.'/screenshot.jpg')))."\r\n\r\n";
-			$raw .= "--".$uid."--";
+					// header
+					$header = "From: Open Screen Monitor <".$_SESSION['email'].">\r\n";
+					$header .= "MIME-Version: 1.0\r\n";
+					$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"\r\n\r\n";
 
-			echo mail($_SESSION['email'], "OSM Screenshot", $raw, $header) ? "Successfully Sent Screenshot To ".$_SESSION['email'] : "Error Sending Screenshot";
-		} else {
-			echo "No Screenshot to send";
+					// message & attachment
+					$raw = "--".$uid."\r\n";
+					$raw .= "Content-type:text/plain; charset=iso-8859-1\r\n";
+					$raw .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+					$raw .= "$text\r\n\r\n";
+					$raw .= "--".$uid."\r\n";
+					$raw .= "Content-Type: image/jpeg; name=\"screenshot.jpg\"\r\n";
+					$raw .= "Content-Transfer-Encoding: base64\r\n";
+					$raw .= "Content-Disposition: attachment; filename=\"screenshot.jpg\"\r\n\r\n";
+					$raw .= chunk_split(base64_encode(file_get_contents($runFolder.'/screenshot.jpg')))."\r\n\r\n";
+					$raw .= "--".$uid."--";
+
+					echo mail($_SESSION['email'], "OSM Screenshot", $raw, $header) ? "Successfully Sent Screenshot To ".$_SESSION['email'] : "Error Sending Screenshot";
+				} else {
+					echo "No Screenshot to send";
+				}
+				die();
+			}
 		}
 	}
 	die();
 }
+
+
 
 if (isset($_GET['update'])) {
 	$data = array();
 	foreach ($_SESSION['alloweddevices'] as $deviceID=>$deviceName) {
 		$data[$deviceID] = array();
-		$folders = glob($dataDir.'/devices/'.$deviceID.'/*',GLOB_ONLYDIR);
+		$folders = glob($dataDir.'/run/'.$deviceID.'/*',GLOB_ONLYDIR);
 		foreach ($folders as $folder){
 			$sessionID = basename($folder);
 			$folder .= '/';
@@ -210,7 +231,8 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 	$_POST['filterlist'] = strtolower(trim(preg_replace('/\n+/', "\n", $_POST['filterlist'])));
 
 	foreach ($_SESSION['alloweddevices'] as $deviceID=>$deviceName) {
-		$_actionPath = $dataDir.'/devices/'.$deviceID.'/';
+		$_actionPath = $dataDir.'/config/'.$deviceID.'/';
+		file_exists($_actionPath) || mkdir($_actionPath);
 		file_put_contents($_actionPath.'filtermode',$_POST['filtermode']);
 		file_put_contents($_actionPath.'filterlist',$_POST['filterlist']);
 		logger($_actionPath.'/log', date('YmdHis',time())."\t".$_SESSION['email']."\tfiltermode\t".$_POST['filtermode']."\n", $_config['logmax']);
@@ -245,12 +267,25 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 			var h1 = $('<h1></h1>');
 			h1.css({'font-size':imgcss.fontsize * imgcss.multiplier});
 			h1.on('mousedown',function(){
-				var div = $(this).parent();
-				div.find('img, div.info').toggle();
+				$('#showmenu').click();
+				$('#urls_'+dev)[0].scrollIntoView();
+				var thisdiv = $(this).parent();
+				if (!thisdiv.hasClass('fullscreen')){
+					thisdiv.addClass('fullscreen');
+					//this isn't dynamic to screen size changes but it works
+					resizeFullscreen();
+				}
 				return false;
 			});
 
-			var info = $("<div class=\"info\">"+
+			var div = $('<div class=\"dev active\"></div>');
+			div.attr("id","div_" + dev);
+			div.append(h1);
+			div.append(img);
+			$('#activedevs').append(div);
+
+
+			var info = $("<div id=\"urls_"+dev+"\"><br /><div class=\"hline\"></div><div style=\"text-align:center;\"><b class=\"title\"></b><br />"+
 				"<a href=\"#\" onmousedown=\"javascript:lockDev('"+dev+"');return false;\"><i class=\"fas fa-lock\" title=\"Lock this device.\"></i></a> | " +
 				"<a href=\"#\" onmousedown=\"javascript:unlockDev('"+dev+"');return false;\"><i class=\"fas fa-unlock\" title=\"Unlock this device.\"></i></a> | " +
 				"<a href=\"#\" onmousedown=\"javascript:openUrl('"+dev+"');return false;\"><i class=\"fas fa-cloud\" title=\"Open an URL on this device.\"></i></a> | " +
@@ -258,49 +293,44 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 				"<a href=\"#\" onmousedown=\"javascript:sendMessage('"+dev+"');return false;\"><i class=\"fas fa-envelope\" title=\"Send a message to this device.\"></i></a> | " +
 				"<a href=\"#\" onmousedown=\"javascript:showLog('"+dev+"');return false;\"><i class=\"fas fa-book\" title=\"Device log.\"></i></a> | " +
 				"<a href=\"#\" onmousedown=\"javascript:screenshot('"+dev+"');return false;\"><i class=\"fas fa-camera\" title=\"Take Screenshot.\"></i></a>" +
-				"<br /><font size=\"4\">Tabs</font><div class=\"hline\"></div><div class=\"tabs\"></div></div>").css({'width':imgcss.width * imgcss.multiplier,'height':imgcss.height * imgcss.multiplier});
+				"</div><br /><div class=\"tabs\"></div><div>");
 
-			var div = $('<div class=\"dev active\"></div>');
-			div.attr("id","div_" + dev);
-			div.append(h1);
-			div.append(img);
-			div.append(info);
+			$('#urls').append(info);
 
-			$('#activedevs').append(div);
 		}
 
 		function closeAllTabs(dev){
 			var div = $('#div_'+dev);
-			$.post('?',{closeAllTabs:div.data('dev'),sessionID:div.data('sessionID')});
+			$.post('?',{action:'closeAllTabs',id:div.data('dev'),sessionID:div.data('sessionID')});
 		}
 
 		function lockDev(dev){
 			var div = $('#div_'+dev);
-			$.post('?',{lock:div.data('dev'),sessionID:div.data('sessionID')});
+			$.post('?',{action:'lock',id:div.data('dev'),sessionID:div.data('sessionID')});
 		}
 
 		function unlockDev(dev){
 			var div = $('#div_'+dev);
-			$.post('?',{unlock:div.data('dev'),sessionID:div.data('sessionID')});
+			$.post('?',{action:'unlock',id:div.data('dev'),sessionID:div.data('sessionID')});
 		}
 
 		function openUrl(dev){
 			var div = $('#div_'+dev);
 			var url1 = prompt('Please enter an URL', 'http://');
 			if (url1 != '')
-				$.post('?',{openurl:div.data('dev'),sessionID:div.data('sessionID'),url:url1})
+				$.post('?',{action:'openurl',id:div.data('dev'),sessionID:div.data('sessionID'),url:url1})
 		}
 
 		function sendMessage(dev){
 			var div = $('#div_'+dev);
 			var message1 = prompt('Please enter a message', '');
 			if (message1 != '')
-				$.post('?',{sendmessage:div.data('dev'),sessionID:div.data('sessionID'),message:message1});
+				$.post('?',{action:'sendmessage',id:div.data('dev'),sessionID:div.data('sessionID'),message:message1});
 		}
 
 		function showLog(dev){
 			var div = $('#div_'+dev);
-			$.post('?',{log:div.data('dev')},function(data){
+			$.post('?',{action:'log',id:div.data('dev')},function(data){
 				$('#logdialog').html(data);
 				$('#logdialog').dialog('open');
 				$('#logdialog').dialog('option','title',dev);
@@ -309,44 +339,26 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 
 		function screenshot(dev){
 			var div = $('#div_'+dev);
-			$.post('?',{screenshot:div.data('dev'),sessionID:div.data('sessionID')},function(data){alert(data);})
+			$.post('?',{action:'screenshot',id:div.data('dev'),sessionID:div.data('sessionID')},function(data){alert(data);})
 		}
 
 		function closeTab(dev,id) {
 			var div = $('#div_'+dev);
-			$.post('?',{closetab:div.data('dev'),sessionID:div.data('sessionID'),tabid:id});
-		}
-
-		function updateAllImages() {
-			$.get('?images',function(data){
-				var image;
-				for(device in data) {
-					image = document.getElementById('img_'+device);
-					if (image) {
-						if (data[device] == '')
-							image.src = 'unavailable.jpg';
-						else
-							image.src = 'data:image/jpg;base64,'+data[device];
-					}
-				}
-				setTimeout(updateAllImages,4000);
-			}).fail(function(){
-				setTimeout(updateAllImages,4000);
-			});
-			updateMeta();
+			$.post('?',{action:'closetab',id:div.data('dev'),sessionID:div.data('sessionID'),tabid:id});
 		}
 
 		function refreshZoom(){
-			$('img, div.info').css({
+			$('#activedevs img').css({
 				'width':imgcss.width * imgcss.multiplier,
 				'height':imgcss.height * imgcss.multiplier,
 			});
-			$('h1').css({
+			$('#activedevs h1').css({
 				'font-size':imgcss.fontsize * imgcss.multiplier,
 			});
 		}
 
 		function sortDevs(){
+			return;
 			var active = $('#activedevs h1').toArray().sort(function(a,b){return (a.innerHTML+a.parentNode.id).toLowerCase().localeCompare((b.innerHTML+b.parentNode.id).toLowerCase());});
 			for (var i=0;i<active.length;i++){
 				$(active[i]).parent().detach().appendTo('#activedevs');
@@ -370,7 +382,7 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 					return;
 				}
 
-				var URLdata = "";
+				var time = (new Date()).getTime();
 				for (dev in data) {
 					var _active = false;
 					$('#div_'+dev).remove();
@@ -386,23 +398,25 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 								_active = true;
 								//if we don't have an image for the device
 								//add the image for the first time
-								if ($('#img_'+dev+'_'+sessionID).length == 0) {
+								var img = $('#img_'+dev+'_'+sessionID);
+								if (img.length == 0) {
 									//we may have to delete it from the inactive devices
 									$('#div_'+dev+'_'+sessionID).remove();
 									enableDevice(dev+'_'+sessionID);
 								}
+								
+								img.attr("src","?action=getImage&id=" + dev + "&sessionID=" + sessionID + "&time=" + time);
 
 								//update username
 								$('#div_'+dev+'_'+sessionID+' h1').html(data[dev][sessionID].username+' ('+data[dev][sessionID].name+')');
-								$('#div_'+dev+'_'+sessionID+' div.tabs').html(data[dev][sessionID].tabs);
+								$('#urls_'+dev+'_'+sessionID+' .title').html(data[dev][sessionID].username+' ('+data[dev][sessionID].name+')');
+								$('#urls_'+dev+'_'+sessionID+' .tabs').html(data[dev][sessionID].tabs);
 								thisdiv.data('name',data[dev][sessionID].name);
 								if (data[dev][sessionID].locked){
 									if (!thisdiv.hasClass('locked')) {thisdiv.addClass('locked');}
 								} else {
 									if (thisdiv.hasClass('locked')) {thisdiv.removeClass('locked');}
 								}
-
-								URLdata = URLdata + "<div class=\"hline\" style=\"height:2px\"></div><b>"+data[dev][sessionID].username+' ('+data[dev][sessionID].name +' - '+data[dev][sessionID].ip +')</b><br />'+$('#div_'+dev+'_'+sessionID+' div.info').html();
 							}
 						} else if (thisdiv.first().hasClass('hidden')){
 							if (data[dev][sessionID].username == "") {
@@ -418,11 +432,6 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 					}
 				}
 
-				$('#urls').html(URLdata);
-
-				if ($('.fullscreen').length == 1)
-					$('#activedevs > div:not(.fullscreen),#inactivedevs > div').css('display','none');
-
 				var count = $('div.active').length;
 				var newvalue = 1;
 				if (count > 0) {
@@ -437,9 +446,19 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 				}
 
 				sortDevs();
+				setTimeout(updateMeta,4000);
 			});
 		}
 
+		function resizeFullscreen(){
+			var devicesdiv = document.getElementById('devicesdiv');
+			var thisdiv = $('.fullscreen');
+			thisdiv.css('top',devicesdiv.offsetTop+'px');
+			thisdiv.css('left',devicesdiv.offsetLeft+'px');
+			thisdiv.css('height',devicesdiv.offsetHeight+'px');
+			thisdiv.css('width',devicesdiv.offsetWidth+'px');
+		}
+		
 		$(document).ready(function(){
 			//increase
 			$('#increase_size').click(function(){imgcss.multiplier = imgcss.multiplier + .05;refreshZoom();});
@@ -459,7 +478,7 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 			$('#massOpenurl').click(function(){
 				var url1 = prompt("Please enter an URL", "http://");
 				if (url1 != '')
-					$('#activedevs > div').each(function(){var div = $(this);$.post('?',{openurl:div.data('dev'),sessionID:div.data('sessionID'),url:url1});});
+					$('#activedevs > div').each(function(){var div = $(this);$.post('?',{action:'openurl',id:div.data('dev'),sessionID:div.data('sessionID'),url:url1});});
 			});
 
 			$('#massSendmessage').click(function(){
@@ -477,24 +496,25 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 			});
 			$('#massShow').click(function(){$('div.hidden').remove();updateMeta();});
 
-			$('#fullscreenBG').click(function(){
-				$('.fullscreen').mousedown();
-			});
-
 			$("#devicesdiv" ).on( "mousedown", "div.dev", function(e) {
 				var thisdiv = $(this);
 
 				if (e.which == 1 || !e.which) {
 					//left click
-					if (thisdiv.hasClass('active') && thisdiv.find('div.info').css('display') == 'none'){
+					if (thisdiv.hasClass('active')){
 						if (thisdiv.hasClass('fullscreen')) {
 							thisdiv.removeClass('fullscreen');
-							$('#fullscreenBG').css('display','none');
-							$('#activedevs > div,#inactivedevs > div').css('display','block');
+							//$('#activedevs > div,#inactivedevs > div').css('display','block');
+							thisdiv.css('top','auto');
+							thisdiv.css('left','auto');
+							thisdiv.css('height','auto');
+							thisdiv.css('width','auto');
 						} else {
 							thisdiv.addClass('fullscreen');
-							$('#fullscreenBG').css('display','block');
-							$('#activedevs > div:not(.fullscreen),#inactivedevs > div').css('display','none');
+							//this isn't dynamic to screen size changes but it works
+							resizeFullscreen();
+							
+							//$('#activedevs > div:not(.fullscreen),#inactivedevs > div').css('display','none');
 						}
 					}
 				} else if (e.which == 3 && !thisdiv.hasClass('fullscreen')) {
@@ -518,9 +538,8 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 				return false;
 			});
 
-			setInterval(updateMeta, 30000);
 			updateMeta();
-			updateAllImages();
+			
 			$('#applyfilter').hide();
 
 			$("#logdialog").dialog({
@@ -540,14 +559,14 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 				$('#menu').show();
 				$(this).hide();
 				$('#hidemenu').show();
-				$('#devicesdiv').css('margin-left','350px');
+				resizeFullscreen();
 			});
 
 			$('#hidemenu').click(function(){
 				$('#menu').hide();
 				$(this).hide();
 				$('#showmenu').show();
-				$('#devicesdiv').css('margin-left','0px');
+				resizeFullscreen();
 			});
 
 			/* logic trigger apply button for filter */
@@ -564,71 +583,72 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 	</script>
 </head>
 <body>
-<div id="fullscreenBG"><div style="padding: 5px;">X</div></div>
-<div id="wrapper">
-	<div id="topmenu">
-		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="decrease_size" value="    -    " />
-		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="increase_size" value="    +    " />
-		|
+<div id="logdialog"></div>
+<div id="box">
+	<div id="box-top">
 		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="hidemenu"  style="display: none;" value="Hide Side Menu" />
 		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="showmenu" value="Show Side Menu" />
 		|
-		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massLock" value="Lock All" />
-		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massUnlock" value="Unlock All" />
-		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massOpenurl" value="Open Url on All" />
-		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massCloseAllTabs" value="Close All Tabs" />
-		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massSendmessage" value="Send Message to All" />
+		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="decrease_size" value="    -    " />
+		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="increase_size" value="    +    " />
 		|
 		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massHide" value="Hide All" />
 		<input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massShow" value="Show All" />
 		|
 		<a href="index.php">Change Lab</a> | Current Lab: <?php echo htmlentities($_SESSION['lab'])."<div style=\"display:inline; float:right; padding-top:5px; padding-right:10px;\">Version ".$_config['version']."</div>"; ?>
 	</div>
-	<div id="menu">
-	<?php
-	//FIXME get the filter list from first device ... not the best method but this is beta
-	$deviceID = array_keys($_SESSION['alloweddevices'])[0];
-	$filtermode = "";
-	$filterlist = "";
-	if (file_exists($dataDir.'/devices/'.$deviceID.'/filtermode') && file_exists($dataDir.'/devices/'.$deviceID.'/filterlist')){
-		$filtermode = file_get_contents($dataDir.'/devices/'.$deviceID.'/filtermode');
-		$filterlist = file_get_contents($dataDir.'/devices/'.$deviceID.'/filterlist');
-	} else {
-		$filtermode = "disabled";
-	}
-	?>
-	<a href="filterlog.php" target="_blank">View Browsing History</a><hr />
-	<h3>Lab Filter (Beta)</h3> <?php echo "Version ".$_config['version']; ?>
-	<div class="hline" style="height:2px"></div>
-	<form id="filter" method="post" target="_blank" action="?filter">
-		<section id="first" class="section">
-			<div class="container">
-				<input type="radio" id="left" name="filtermode" value="defaultallow" onclick="$('#applyfilter').show();" <?php if ($filtermode == 'defaultallow') echo 'checked="checked"'; ?> />
-				<label for="left"><span class="radio"><div class="tooltip">Picket Fence<span class="tooltiptext">Block sites matching listed patterns.</span></div></span></label>
+	<div id="box-bottom">
+		<div id="menu">
+			<?php
+			//FIXME get the filter list from first device ... not the best method but this is beta
+			$deviceID = array_keys($_SESSION['alloweddevices'])[0];
+			$filtermode = "disabled";
+			$filterlist = "";
+			if (file_exists($dataDir.'/config/'.$deviceID.'/filtermode') && file_exists($dataDir.'/config/'.$deviceID.'/filterlist')){
+				$filtermode = file_get_contents($dataDir.'/config/'.$deviceID.'/filtermode');
+				$filterlist = file_get_contents($dataDir.'/config/'.$deviceID.'/filterlist');
+			}
+			?>
+			<div style="text-align:center;">
+				<br /><a href="filterlog.php" target="_blank" class="w3-button w3-white w3-border w3-border-blue w3-round-large">View Browsing History</a>
+				<br /><br /><input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massLock" value="Lock All" />
+				<br /><br /><input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massUnlock" value="Unlock All" />
+				<br /><br /><input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massOpenurl" value="Open Url on All" />
+				<br /><br /><input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massCloseAllTabs" value="Close All Tabs" />
+				<br /><br /><input type="button" class="w3-button w3-white w3-border w3-border-blue w3-round-large" id="massSendmessage" value="Send Message to All" />
 			</div>
-			<div class="container">
-				<input type="radio" id="center" name="filtermode" value="defaultdeny" onclick="$('#applyfilter').show();" <?php if ($filtermode == 'defaultdeny') echo 'checked="checked"'; ?> />
-				<label for="center"><span class="radio"><div class="tooltip">Walled Garden<span class="tooltiptext">Allow only sites matching listed patterns.</span></div></span></label>
-			</div>
-			<div class="container">
-				<input type="radio" id="right" name="filtermode" value="disabled" onclick="$('#applyfilter').show();" <?php if ($filtermode == 'disabled') echo 'checked="checked"'; ?> />
-				<label for="right"><span class="radio"><div class="tooltip">Disabled<span class="tooltiptext">Disable all filter operations.</span></div></span></label>
-			</div>
-		</section>
-		Site URLs or keywords (one per line):
-		<textarea name="filterlist" id="filterlist" style="width: 90%;height:50px;"><?php echo htmlentities($filterlist); ?></textarea>
-		<input type="submit" id="applyfilter" onclick="$('#applyfilter').hide();" value="Apply Changes" class="w3-button w3-white w3-border w3-border-blue w3-round-large" />
-	</form>
-	<h5>Device URLs - Data</h5>
-	<div id="urls"></div>
-	<br />
+			<hr />
+			<h3>Lab Filter (Beta)</h3>
+			<?php echo "Version ".$_config['version']; ?>
+			<div class="hline" style="height:2px"></div>
+			<form id="filter" method="post" target="_blank" action="?filter">
+				<section id="first" class="section">
+					<div class="container">
+						<input type="radio" id="left" name="filtermode" value="defaultallow" onclick="$('#applyfilter').show();" <?php if ($filtermode == 'defaultallow') echo 'checked="checked"'; ?> />
+						<label for="left"><span class="radio"><div class="tooltip">Picket Fence<span class="tooltiptext">Block sites matching listed patterns.</span></div></span></label>
+					</div>
+					<div class="container">
+						<input type="radio" id="center" name="filtermode" value="defaultdeny" onclick="$('#applyfilter').show();" <?php if ($filtermode == 'defaultdeny') echo 'checked="checked"'; ?> />
+						<label for="center"><span class="radio"><div class="tooltip">Walled Garden<span class="tooltiptext">Allow only sites matching listed patterns.</span></div></span></label>
+					</div>
+					<div class="container">
+						<input type="radio" id="right" name="filtermode" value="disabled" onclick="$('#applyfilter').show();" <?php if ($filtermode == 'disabled') echo 'checked="checked"'; ?> />
+						<label for="right"><span class="radio"><div class="tooltip">Disabled<span class="tooltiptext">Disable all filter operations.</span></div></span></label>
+					</div>
+				</section>
+				Site URLs or keywords (one per line):
+				<textarea name="filterlist" id="filterlist" style="width: 90%;height:50px;"><?php echo htmlentities($filterlist); ?></textarea>
+				<input type="submit" id="applyfilter" onclick="$('#applyfilter').hide();" value="Apply Changes" class="w3-button w3-white w3-border w3-border-blue w3-round-large" />
+			</form>
+			<h5>Device URLs - Data</h5>
+			<div id="urls"></div>
+			<br />
+			<div style="height:100%;"></div>
+		</div>
+		<div id="devicesdiv">
+			<div id="activedevs"></div>
+			<div id="inactivedevs"></div>
+		</div>
 	</div>
-	<div id="devicesdiv">
-		<div id="activedevs"></div>
-		<div id="inactivedevs"></div>
-	</div>
-</div>
-<div id="logdialog"></div>
-<!-- <?php print_r($_SESSION); ?>-->
 </body>
 </html>
