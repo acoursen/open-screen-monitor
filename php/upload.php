@@ -50,8 +50,7 @@ if (isset($_POST['data'])) {
 		//ping file for status
 		touch($runFolder.'/ping');
 		file_put_contents($runFolder.'/ip',$_SERVER['REMOTE_ADDR']);
-		//debug
-		file_put_contents($runFolder.'/debug',$_POST['data']);
+		//screenshot
 		$screenshot = '';
 		if (isset($data['screenshot'])) {
 			$screenshot = $data['screenshot'];

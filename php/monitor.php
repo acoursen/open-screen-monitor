@@ -409,7 +409,7 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 
 								//update username
 								$('#div_'+dev+'_'+sessionID+' h1').html(data[dev][sessionID].username+' ('+data[dev][sessionID].name+')');
-								$('#urls_'+dev+'_'+sessionID+' .title').html(data[dev][sessionID].username+' ('+data[dev][sessionID].name+')');
+								$('#urls_'+dev+'_'+sessionID+' .title').html(data[dev][sessionID].username+' ('+data[dev][sessionID].name+'\\'+data[dev][sessionID].ip+')');
 								$('#urls_'+dev+'_'+sessionID+' .tabs').html(data[dev][sessionID].tabs);
 								thisdiv.data('name',data[dev][sessionID].name);
 								if (data[dev][sessionID].locked){

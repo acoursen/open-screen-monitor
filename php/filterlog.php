@@ -85,7 +85,7 @@ if (isset($_GET['search'])){
 						$date = $line[1];
 						$type = $line[2];
 						$url = $line[3];
-						if ( (isset($_GET['showadvanced']) || $type == 'main_frame') && ($action == '' || in_array($lineaction, $actiontype)) && ($urlfilter == '' || preg_match("/$urlfilter/i", $url)) ){
+						if ( (isset($_GET['showadvanced']) || $type == 'main_frame') && ($action == '' || in_array($lineaction, $actiontype)) && ($urlfilter == '' || preg_match("/".str_replace("/","\\/",$urlfilter)."/i", $url)) ){
 							echo "<tr><td>";
 							echo "Action: $lineaction<br />";
 							echo "Date: $date<br />";

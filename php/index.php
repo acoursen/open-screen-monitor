@@ -135,16 +135,14 @@ if (isset($_GET['logout'])) {
 				if ($value == "") unset($deviceInfo[$i]);
 			}
 			$description = implode(" - ",$deviceInfo);
-			$_SESSION['lab'] = $_GET['lab'];
 			$_SESSION['alloweddevices'][$deviceID] = ($description != "" ? $description : $deviceID);
 		}
-		$_SESSION['alloweddevices']['unknown'] = '- Non-Enterprise device';
-
-		//sort the allowed devices array
-		asort($_SESSION['alloweddevices']);
-
-		header('Location: filterlog.php');
 	}
+	$_SESSION['lab'] = '';
+	$_SESSION['alloweddevices']['unknown'] = '- Non-Enterprise device';
+	//sort the allowed devices array
+	asort($_SESSION['alloweddevices']);
+	header('Location: filterlog.php');
 	die();
 } elseif (isset($_GET['course']) && isset($_SESSION['token']) && checkToken($_SESSION['token'])) {
 	if ($_config['mode'] == 'user') {
@@ -416,12 +414,12 @@ if (isset($_SESSION['token']) && checkToken($_SESSION['token'])) {
 				if ($_SESSION['admin']) {
 					//show all devices
 					foreach (array_keys($labs) as $lab) {
-						echo "<li><a href=\"?lab=".urlencode($lab)."\">".htmlentities($lab)."</a></li>";
+						echo "<li><a href=\"?lab=".urlencode($lab)."\">".htmlentities($lab)."</a> - (".count($labs[$lab])." devices)</li>";
 					}
 				} else {
 					//show just what they can access
 					foreach ($myPermissions as $permission) {
-						echo "<li><a href=\"?lab=".urlencode($permission)."\">".htmlentities($permission)."</a></li>";
+						echo "<li><a href=\"?lab=".urlencode($permission)."\">".htmlentities($permission)."</a> - (".count($labs[$permission])." devices)</li>";
 					}
 				}
 				?>
