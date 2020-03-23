@@ -73,7 +73,7 @@ if (isset($_GET['action'])){
 		$runFolder = $dataDir.'/run/'.$_GET['id'].'/'.$_GET['sessionID'];
 
 		if ($action == 'getImage'){
-			$img = file_get_contents($runFolder.'/screenshot.jpg');
+			$img = @file_get_contents($runFolder.'/screenshot.jpg');
 			if ($img != ''){
 				echo $img;
 			} else {
@@ -255,20 +255,22 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 		var imgcss = {'width':400,'height':300,'fontsize':14,'multiplier':1};
 		var deviceNames = <?php echo json_encode($_SESSION['alloweddevices']); ?>
 
-		function enableDevice(dev){
+		function enableDevice(dev,sessionID){
 			var img = $('<img />');
-			img.attr("id","img_" + dev);
+			img.attr("id","img_" + dev+'_'+sessionID);
 			img.attr("alt",name);
 			img.attr("src","unavailable.jpg");
 			img.css({'width':imgcss.width * imgcss.multiplier,'height':imgcss.height * imgcss.multiplier});
 			img.on('contextmenu',function(){return false;});
-
+			img[0].onload = function(){setTimeout(function(){refreshImg(dev,sessionID);},1000+Math.random()*2000);};
+			img[0].onerror = function(){setTimeout(function(){refreshImg(dev,sessionID);},1000+Math.random()*2000);};
+			
 
 			var h1 = $('<h1></h1>');
 			h1.css({'font-size':imgcss.fontsize * imgcss.multiplier});
 			h1.on('mousedown',function(){
 				$('#showmenu').click();
-				$('#urls_'+dev)[0].scrollIntoView();
+				$('#urls_'+dev+'_'+sessionID)[0].scrollIntoView();
 				var thisdiv = $(this).parent();
 				if (!thisdiv.hasClass('fullscreen')){
 					thisdiv.addClass('fullscreen');
@@ -279,26 +281,31 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 			});
 
 			var div = $('<div class=\"dev active\"></div>');
-			div.attr("id","div_" + dev);
+			div.attr("id","div_" + dev+'_'+sessionID);
 			div.append(h1);
 			div.append(img);
 			$('#activedevs').append(div);
 
 
-			var info = $("<div id=\"urls_"+dev+"\"><br /><div class=\"hline\"></div><div style=\"text-align:center;\"><b class=\"title\"></b><br />"+
-				"<a href=\"#\" onmousedown=\"javascript:lockDev('"+dev+"');return false;\"><i class=\"fas fa-lock\" title=\"Lock this device.\"></i></a> | " +
-				"<a href=\"#\" onmousedown=\"javascript:unlockDev('"+dev+"');return false;\"><i class=\"fas fa-unlock\" title=\"Unlock this device.\"></i></a> | " +
-				"<a href=\"#\" onmousedown=\"javascript:openUrl('"+dev+"');return false;\"><i class=\"fas fa-cloud\" title=\"Open an URL on this device.\"></i></a> | " +
-				"<a href=\"#\" onmousedown=\"javascript:closeAllTabs('"+dev+"');return false;\"><i class=\"fas fa-window-close\" title=\"Close all tabs on this device.\"></i></a> | " +
-				"<a href=\"#\" onmousedown=\"javascript:sendMessage('"+dev+"');return false;\"><i class=\"fas fa-envelope\" title=\"Send a message to this device.\"></i></a> | " +
-				"<a href=\"#\" onmousedown=\"javascript:showLog('"+dev+"');return false;\"><i class=\"fas fa-book\" title=\"Device log.\"></i></a> | " +
-				"<a href=\"#\" onmousedown=\"javascript:screenshot('"+dev+"');return false;\"><i class=\"fas fa-camera\" title=\"Take Screenshot.\"></i></a>" +
+			var info = $("<div id=\"urls_"+dev+'_'+sessionID+"\"><br /><div class=\"hline\"></div><div style=\"text-align:center;\"><b class=\"title\"></b><br />"+
+				"<a href=\"#\" onmousedown=\"javascript:lockDev('"+dev+'_'+sessionID+"');return false;\"><i class=\"fas fa-lock\" title=\"Lock this device.\"></i></a> | " +
+				"<a href=\"#\" onmousedown=\"javascript:unlockDev('"+dev+'_'+sessionID+"');return false;\"><i class=\"fas fa-unlock\" title=\"Unlock this device.\"></i></a> | " +
+				"<a href=\"#\" onmousedown=\"javascript:openUrl('"+dev+'_'+sessionID+"');return false;\"><i class=\"fas fa-cloud\" title=\"Open an URL on this device.\"></i></a> | " +
+				"<a href=\"#\" onmousedown=\"javascript:closeAllTabs('"+dev+'_'+sessionID+"');return false;\"><i class=\"fas fa-window-close\" title=\"Close all tabs on this device.\"></i></a> | " +
+				"<a href=\"#\" onmousedown=\"javascript:sendMessage('"+dev+'_'+sessionID+"');return false;\"><i class=\"fas fa-envelope\" title=\"Send a message to this device.\"></i></a> | " +
+				"<a href=\"#\" onmousedown=\"javascript:showLog('"+dev+'_'+sessionID+"');return false;\"><i class=\"fas fa-book\" title=\"Device log.\"></i></a> | " +
+				"<a href=\"#\" onmousedown=\"javascript:screenshot('"+dev+'_'+sessionID+"');return false;\"><i class=\"fas fa-camera\" title=\"Take Screenshot.\"></i></a>" +
 				"</div><br /><div class=\"tabs\"></div><div>");
 
 			$('#urls').append(info);
 
 		}
 
+		function refreshImg(dev,sessionID) {
+			var url = "?action=getImage&id=" + dev + "&sessionID=" + sessionID + "&time=" + (new Date()).getTime();
+			$('#img_'+dev+'_'+sessionID).attr("src",url);
+		}
+		
 		function closeAllTabs(dev){
 			var div = $('#div_'+dev);
 			$.post('?',{action:'closeAllTabs',id:div.data('dev'),sessionID:div.data('sessionID')});
@@ -402,10 +409,10 @@ if (isset($_POST['filterlist']) && isset($_POST['filtermode']) && in_array($_POS
 								if (img.length == 0) {
 									//we may have to delete it from the inactive devices
 									$('#div_'+dev+'_'+sessionID).remove();
-									enableDevice(dev+'_'+sessionID);
+									enableDevice(dev,sessionID);
 								}
 								
-								img.attr("src","?action=getImage&id=" + dev + "&sessionID=" + sessionID + "&time=" + time);
+								//img.attr("src","?action=getImage&id=" + dev + "&sessionID=" + sessionID + "&time=" + time);
 
 								//update username
 								$('#div_'+dev+'_'+sessionID+' h1').html(data[dev][sessionID].username+' ('+data[dev][sessionID].name+')');
