@@ -143,12 +143,34 @@ if (isset($data['username']) && isset($data['domain']) && isset($data['deviceID'
 			}
 
 			if ($email != '' && $url != '' && (in_array('*',$types) || in_array($data['type'],$types)) && ($url == '*' || stripos($data['url'],$url) !== false)){
+				$uid = md5(uniqid(time()));
+
+				$screenshotFiles = glob($dataDir.'/run/'.$data['deviceID'].'/*/screenshot.jpg');
+				
+				// header
 				$header = "From: Open Screen Monitor <".$email.">\r\n";
-				$raw = "User: ".$data['username']."_".$data['domain']
-					."\nDevice: ".$data['deviceID']
-					."\nDevice Address: ".str_replace(".",'-',$_SERVER['REMOTE_ADDR'])
-					."\n".str_replace("\t","\n",$logentry);
-				mail($email, "OSM Trigger Alert", $raw, $header);
+				$header .= "MIME-Version: 1.0\r\n";
+				$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"\r\n\r\n";
+
+				// message & attachment
+				$raw = "--".$uid."\r\n";
+				$raw .= "Content-type:text/plain; charset=iso-8859-1\r\n";
+				$raw .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+				$raw .= "User: ".$data['username']."_".$data['domain']."\r\n";
+				$raw .= "Device: ".$data['deviceID']."\r\n";
+				$raw .= "Device Address: ".str_replace(".",'-',$_SERVER['REMOTE_ADDR'])."\r\n";
+				$raw .= str_replace("\t","\r\n",$logentry)."\r\n\r\n";
+				
+				foreach($screenshotFiles as $i => $screenshotFile){
+					$raw .= "--".$uid."\r\n";
+					$raw .= "Content-Type: image/jpeg; name=\"screenshot$i.jpg\"\r\n";
+					$raw .= "Content-Transfer-Encoding: base64\r\n";
+					$raw .= "Content-Disposition: attachment; filename=\"screenshot$i.jpg\"\r\n\r\n";
+					$raw .= chunk_split(base64_encode(file_get_contents($screenshotFile)))."\r\n\r\n";
+				}
+
+				$raw .= "--".$uid."--";
+				mail($email, "OSM Screenshot", $raw, $header);
 			}
 		}
 		fclose($file);

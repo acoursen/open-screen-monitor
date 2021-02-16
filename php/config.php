@@ -40,6 +40,7 @@ $_config['filterMessage'] = array(
 );
 
 $_config['showStartupNotification'] = false;
+$_config['showUnknownDevices'] = false;
 $_config['filterresourcetypes'] = array("main_frame","sub_frame","xmlhttprequest");
 $_config['filterviaserver'] = false;
 $_config['filterviaserverShowBlockPage'] = false;
