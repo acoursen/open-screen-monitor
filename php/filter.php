@@ -1,6 +1,11 @@
 <?php
 require('config.php');
 
+//allow custom hooking here
+//make sure to set restrictive permissions on this file
+if (file_exists($dataDir.'/custom-filter-prepend.php'))
+	include($dataDir.'/custom-filter-prepend.php');
+
 $data = isset($_POST['data']) ? json_decode($_POST['data'],true) : array();
 if (isset($data['username']) && isset($data['domain']) && isset($data['deviceID']) && isset($data['url']) && $data['url'] != ''){
 	$data['username'] = preg_replace("/[^a-z0-9-_\.]/","",$data['username']);
@@ -11,6 +16,9 @@ if (isset($data['username']) && isset($data['domain']) && isset($data['deviceID'
 
 	$data['deviceID'] = preg_replace("/[^a-z0-9-]/","",$data['deviceID']);
 	if ($data['deviceID'] == '') $data['deviceID'] = 'unknown';
+
+	if (!isset($data['sessionID']))$data['sessionID'] = 'unknown';
+	$data['sessionID'] = preg_replace("/[^0-9_]/","",$data['sessionID']);
 
 	if (!isset($data['type']))$data['type'] = 'unknown';
 	$data['type'] = preg_replace("/[^a-z0-9_]/","",$data['type']);
@@ -144,9 +152,23 @@ if (isset($data['username']) && isset($data['domain']) && isset($data['deviceID'
 
 			if ($email != '' && $url != '' && (in_array('*',$types) || in_array($data['type'],$types)) && ($url == '*' || stripos($data['url'],$url) !== false)){
 				$uid = md5(uniqid(time()));
-
-				$screenshotFiles = glob($dataDir.'/run/'.$data['deviceID'].'/*/screenshot.jpg');
 				
+				//find the device name
+				$niceDeviceName = $data['deviceID'];
+				$configFolder = $dataDir.'/config/unknown';
+				$devices = fopen($dataDir.'/devices.tsv','r');
+				while($line = trim(fgets($devices))){
+					$line = explode("\t",$line);
+					if ($line[0] == $data['deviceID']){
+						$niceDeviceName = implode(" - ",$line);
+						break;
+					}
+				}
+				fclose($devices);
+				
+				
+				
+
 				// header
 				$header = "From: Open Screen Monitor <".$email.">\r\n";
 				$header .= "MIME-Version: 1.0\r\n";
@@ -157,20 +179,22 @@ if (isset($data['username']) && isset($data['domain']) && isset($data['deviceID'
 				$raw .= "Content-type:text/plain; charset=iso-8859-1\r\n";
 				$raw .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
 				$raw .= "User: ".$data['username']."_".$data['domain']."\r\n";
-				$raw .= "Device: ".$data['deviceID']."\r\n";
+				$raw .= "Device: ".$niceDeviceName."\r\n";
 				$raw .= "Device Address: ".str_replace(".",'-',$_SERVER['REMOTE_ADDR'])."\r\n";
 				$raw .= str_replace("\t","\r\n",$logentry)."\r\n\r\n";
 				
-				foreach($screenshotFiles as $i => $screenshotFile){
+				//screenshot
+				$screenshotFile = $dataDir.'/run/'.$data['deviceID'].'/'.$data['sessionID'].'/screenshot.jpg';
+				if (file_exists($screenshotFile)){
 					$raw .= "--".$uid."\r\n";
-					$raw .= "Content-Type: image/jpeg; name=\"screenshot$i.jpg\"\r\n";
+					$raw .= "Content-Type: image/jpeg; name=\"screenshot.jpg\"\r\n";
 					$raw .= "Content-Transfer-Encoding: base64\r\n";
-					$raw .= "Content-Disposition: attachment; filename=\"screenshot$i.jpg\"\r\n\r\n";
+					$raw .= "Content-Disposition: attachment; filename=\"screenshot.jpg\"\r\n\r\n";
 					$raw .= chunk_split(base64_encode(file_get_contents($screenshotFile)))."\r\n\r\n";
 				}
-
+					
 				$raw .= "--".$uid."--";
-				mail($email, "OSM Screenshot", $raw, $header);
+				mail($email, "OSM Filter Alert", $raw, $header);
 			}
 		}
 		fclose($file);
