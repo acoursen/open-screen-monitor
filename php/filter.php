@@ -194,7 +194,7 @@ if (isset($data['username']) && isset($data['domain']) && isset($data['deviceID'
 				}
 					
 				$raw .= "--".$uid."--";
-				mail($email, "OSM Filter Alert", $raw, $header);
+				mail($email, "OSM Filter Alert: ".$data['username']."@".$data['domain'], $raw, $header);
 			}
 		}
 		fclose($file);
