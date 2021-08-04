@@ -11,9 +11,9 @@ if (isset($_POST['data'])) {
 	$data = json_decode($_POST['data'],true);
 	$deviceID = $_config['showUnknownDevices'] ? 'unknown' : '';
 
-	if ($_config['mode'] == 'device' && isset($data['deviceID'])){
+	if ($_config['mode'] == 'device' && isset($data['deviceID']) && $data['deviceID'] != ''){
 		$deviceID = preg_replace("/[^a-z0-9-]/","",$data['deviceID']);
-	} elseif ($_config['mode'] == 'user' && isset($data['username']) && isset($data['domain'])) {
+	} elseif ($_config['mode'] == 'user' && isset($data['username']) && isset($data['domain']) && $data['username'] != '' && $data['domain'] != '') {
 		$deviceID = preg_replace("/[^a-zA-Z0-9-_]/","",$data['username'].'_'.$data['domain']);
 	}
 
@@ -29,11 +29,10 @@ if (isset($_POST['data'])) {
 			}
 		}
 		fclose($devices);
-		
+
 		//make sure config folder exists
 		file_exists($configFolder) || mkdir($configFolder, 0755 , true);
-		
-		
+
 		//create run folder if it doesn't exist
 		$runFolder = $dataDir.'/run/'.$deviceID;
 		if (!file_exists($runFolder)) mkdir($runFolder, 0755 , true);
@@ -69,6 +68,7 @@ if (isset($_POST['data'])) {
 		//ping file for status
 		touch($runFolder.'/ping');
 		file_put_contents($runFolder.'/ip',$_SERVER['REMOTE_ADDR']);
+
 		//screenshot
 		$screenshot = '';
 		if (isset($data['screenshot'])) {
@@ -81,6 +81,8 @@ if (isset($_POST['data'])) {
 		} elseif (file_exists($runFolder.'/screenshot.jpg')) {
 			unlink($runFolder.'/screenshot.jpg');
 		}
+
+		//document some stuff
 		foreach (array('username','version','domain') as $field) {
 			if (isset($data[$field]) && $data[$field] != "") {
 				file_put_contents($runFolder.'/'.$field,$data[$field]);
@@ -88,11 +90,14 @@ if (isset($_POST['data'])) {
 				unlink($runFolder.'/'.$field);
 			}
 		}
+
+		//tabs
 		if (isset($data['tabs'])) {
 			file_put_contents($runFolder.'/tabs',json_encode($data['tabs']));
 		} elseif (file_exists($runFolder.'/tabs')) {
 			unlink($runFolder.'/tabs');
 		}
+
 		//send commands back
 		$toReturn['commands'][] = array('action'=>'changeRefreshTime','time'=>$_config['uploadRefreshTime']);
 		$toReturn['commands'][] = array('action'=>'changeScreenscrapeTime','time'=>$_config['screenscrapeTime']);
@@ -108,10 +113,18 @@ if (isset($_POST['data'])) {
 			}
 			unlink($runFolder.'/openurl');
 		}
-		if (file_exists($configFolder.'/filterlist') && file_exists($configFolder.'/filtermode')) {
+		if (file_exists($configFolder.'/filtermode')) {
 			$filtermode = file_get_contents($configFolder.'/filtermode');
-			$filterlisttime = filemtime($configFolder.'/filterlist');
-			$filterlist = file_get_contents($configFolder.'/filterlist');
+			$filterlist = '';
+			$filterlisttime = 0;
+
+			if ($filtermode == 'defaultdeny' && file_exists($configFolder.'/filterlist-defaultdeny')){
+				$filterlisttime = filemtime($configFolder.'/filterlist-defaultdeny');
+				$filterlist = file_get_contents($configFolder.'/filterlist-defaultdeny');
+			} elseif ($filtermode == 'defaultallow' && file_exists($configFolder.'/filterlist-defaultallow')) {
+				$filterlisttime = filemtime($configFolder.'/filterlist-defaultallow');
+				$filterlist = file_get_contents($configFolder.'/filterlist-defaultallow');
+			}
 			$filterlist = explode("\n",$filterlist);
 
 			foreach ($filterlist as $i=>$value) {
@@ -234,6 +247,7 @@ if (isset($_POST['data'])) {
 		//we don't really care except for maybe eventually enabling the filter so it follows them even on those devices
 		$toReturn['commands'][] = array('action'=>'changeRefreshTime','time'=>10*60*1000);
 	}
+
 	//(de)activate server side filter
 	if ($_config['filterviaserver'] != $data['filterviaserver'])
 		$toReturn['commands'][] = array('action'=>'setData','key'=>'filterviaserver','value'=>$_config['filterviaserver']);
