@@ -202,7 +202,8 @@ class API extends \OSM\Tools\Route {
 			\OSM\Tools\DB::beginTransaction();
 
 			\OSM\Tools\DB::delete('tbl_filter_entry_group',['fields'=>['filterID'=>$groupID]]);
-			foreach(($_POST['apps'] ?? []) as $app){
+			$apps = $_POST['apps'] ?? [];
+			foreach($apps as $app){
 				\OSM\Tools\DB::insert('tbl_filter_entry_group',['filterID'=>$groupID,'appName'=>$app]);
 			}
 
@@ -215,6 +216,7 @@ class API extends \OSM\Tools\Route {
 				'filtermode'=>$filtermode,
 				'defaultdeny'=>$defaultdeny,
 				'defaultallow'=>$defaultallow,
+				'apps'=> $apps,
 			]);
 
 			\OSM\Tools\DB::commit();
