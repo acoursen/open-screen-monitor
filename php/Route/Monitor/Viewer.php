@@ -37,7 +37,8 @@ div.notInGroup {border: 5px solid yellow !important;}
 .fullscreen .buttons span {font-size: 2rem !important;}
 .fullscreen .info {display:block !important;position:absolute;width:300px;left:20px;background-color:white;left:25px;100px;height:calc(100vh - 100px);top:75px;text-align:left;overflow-y:scroll;word-break:break-all;}
 .fullscreen img {position:absolute;height:calc(100vh - 100px) !important;width:calc(100vw - 400px) !important;left: 350px;top:75px;}
-
+#filterlistheader {font-weight:bold;}
+#applyfilter {margin:30px auto;}
 		';
 
 
@@ -153,11 +154,15 @@ div.notInGroup {border: 5px solid yellow !important;}
 							if (test.classList.contains("locked")){test.classList.remove("locked");}
 						}
 
+						var title = "";
 						if (session.groupID != window.osm.groupID){
-							if (!test.classList.contains("notInGroup")){test.classList.add("notInGroup");test.title = "User in other class: " + session.groupID;}
+							if (!test.classList.contains("notInGroup")){test.classList.add("notInGroup");}
+							title = "User in other class: " + session.groupID;
 						} else {
-							if (test.classList.contains("notInGroup")){test.classList.remove("notInGroup");test.title = "";}
+							if (test.classList.contains("notInGroup")){test.classList.remove("notInGroup");}
 						}
+
+						if (test.title != title) {test.title = title;}
 					}
 
 					test.parentElement.append(test);
@@ -245,7 +250,7 @@ div.notInGroup {border: 5px solid yellow !important;}
 				if (document.visibilityState != "visible"){console.log("updateMeta not visible, exiting");return;}
 				if (window.osm.disableUpdate){return;}
 
-				$.get("/?route=Monitor\\\\API&action=online&groupID=" + window.osm.groupID,function(data,textStatus,jqXHR){
+				$.get("/?route=Monitor\\\\API&action=online&groupID=" + encodeURIComponent(window.osm.groupID),function(data,textStatus,jqXHR){
 					if (jqXHR.getResponseHeader("X-OSM-Refresh") == "page"){
 						location.reload(true);
 						return;
@@ -411,15 +416,6 @@ div.notInGroup {border: 5px solid yellow !important;}
 					$("#showmenu").show();
 				});
 
-				/* logic trigger apply button for filter */
-				$("#filterlistdefaultdeny, #filterlistdefaultallow").on("input propertychange", function() {
-					if(this.value.length){
-						$("#applyfilter").show();
-					}
-				});
-				$("input.apps").on("change", function(){
-					$("#applyfilter").show();
-				});
 				$("input[name=filtermode]").change(function(){
 					$("#filterlistdefaultdeny").hide();
 					$("#filterlistdefaultallow").hide();
@@ -428,11 +424,8 @@ div.notInGroup {border: 5px solid yellow !important;}
 					if (this.value == "defaultdeny"){$("#filterlistdefaultdeny").show();}
 					if (this.value == "defaultallow"){$("#filterlistdefaultallow").show();}
 					if (this.value == "disabled"){$("#filterlistheader").hide();}
-					$("#applyfilter").show();
 				});
 				$("input[name=filtermode]:checked").change();
-				$("#applyfilter").click(function (){$(this).hide();});
-				$("#applyfilter").hide();
 
 				window.scrollTo(0, 0);
 			});
@@ -466,7 +459,18 @@ div.notInGroup {border: 5px solid yellow !important;}
 		echo '<form id="filter" method="post" target="_blank" action="/?route=Monitor\\API">';
 		echo '<input type="hidden" name="action" value="filter" />';
 		echo '<input type="hidden" id="inputGroupID" name="groupID" value="'.htmlentities($groupID).'" />';
-		echo '<b>Apps</b>';
+		echo '<b>Mode</b>';
+		$options = [
+			'defaultallow' => 'Allow everything (research projects, etc.)',
+			'defaultdeny' => 'Allow only selected apps and extra sites',
+		];
+		foreach($options as $option => $description){
+			echo '<div class="form-check">';
+			echo '<input class="form-check-input" name="filtermode" type="radio" id="filterOption'.$option.'" value="'.$option.'" '.($option == $groupConfig['filtermode'] ? 'checked':'').'>';
+			echo '<label class="form-check-label" for="filterOption'.$option.'">'.$description.'</label>';
+			echo '</div>';
+		}
+		echo '<br /><b>Apps</b>';
 		$apps = \OSM\Tools\DB::select("tbl_filter_entry_group",['fields'=>['filterID'=>$groupID]]);
 		$appNames = [];
 		foreach($apps as $app){
@@ -477,22 +481,12 @@ div.notInGroup {border: 5px solid yellow !important;}
 		foreach($rows as $row){
 			echo '<br /><input type="checkbox" '.(in_array($row['appName'],$appNames) ? 'checked' : '').' class="apps" name="apps[]" value="'.htmlentities($row['appName']).'" /> '.htmlentities($row['appName']);
 		}
-		echo '<br /><br /><b>Other Sites</b>';
-		$options = [
-			'defaultallow' => 'Allow all but those matching listed patterns.',
-			'defaultdeny' => 'Allow only sites matching listed patterns.',
-		];
-		foreach($options as $option => $description){
-			echo '<div class="form-check">';
-			echo '<input class="form-check-input" name="filtermode" type="radio" id="filterOption'.$option.'" value="'.$option.'" '.($option == $groupConfig['filtermode'] ? 'checked':'').'>';
-			echo '<label class="form-check-label" for="filterOption'.$option.'">'.$description.'</label>';
-			echo '</div>';
-		}
+		echo '<br /><br />';
 		echo '<div style="text-align:center;">';
-		echo '<div id="filterlistheader">Site URLs or keywords (one per line):</div>';
+		echo '<div id="filterlistheader">Extra Sites (one per line)</div>';
 		echo '<textarea name="filterlist-defaultdeny" id="filterlistdefaultdeny" style="text-align:left;width: 90%;height:200px;">'.htmlentities($groupConfig['filterlist-defaultdeny']).'</textarea>';
 		echo '<textarea name="filterlist-defaultallow" id="filterlistdefaultallow" style="text-align:left;width: 90%;height:200px;">'.htmlentities($groupConfig['filterlist-defaultallow']).'</textarea>';
-		echo '<input type="submit" id="applyfilter" onclick="$(\\"#applyfilter\\").hide();" value="Apply Changes" class="btn btn-primary" />';
+		echo '<input type="submit" id="applyfilter" value="Apply Changes" class="btn btn-primary" />';
 		echo '</div>';
 		echo '</form>';
 		echo '</div>';
