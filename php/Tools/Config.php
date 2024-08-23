@@ -81,6 +81,8 @@ class Config {
 			}
 		}
 
+		$config['filterID'] = $groupID;
+
 		return $config;
 	}
 
@@ -98,9 +100,7 @@ class Config {
 
 		if ($groupID != ''){
 			//if we found a group then just return it
-			$group = self::getGroup($groupID);
-			$group['filterID'] = $groupID;
-			return $group;
+			return self::getGroup($groupID);
 		}
 
 		//otherwise look for a device group and set
@@ -108,10 +108,8 @@ class Config {
 		$rows = \OSM\Tools\DB::select('tbl_lab_device',['fields'=>['deviceid'=>$deviceID]]);
 		if ($groupID = ($rows[0]['path'] ?? false)){
 			$groupID = 'lab{'.$groupID.'}';
-			$group = self::getGroup($groupID);
 			\OSM\Tools\TempDB::set('groupID/'.$sessionID, $groupID, \OSM\Tools\Config::get('userGroupTimeout'));
-			$group['filterID'] = $groupID;
-			return $group;
+			return self::getGroup($groupID);
 		}
 
 		//todo figure out default
