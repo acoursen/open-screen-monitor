@@ -3,13 +3,18 @@ namespace OSM\Route\Extension;
 
 class Filter extends \OSM\Tools\Route {
 	private function testURL($url, $value){
-		if (substr($value,0,6) == 'regex:') {
+		if (substr($value,0,7) == 'simple:') {
+			$value = substr($value,7);
+			$value = str_replace('.','\.',$value);
+			$value = '/^https?:\/\/([a-z0-9\-]*\.)?'.$value.'\//';
+			return preg_match($value,$url);
+		} elseif (substr($value,0,6) == 'regex:') {
 			$value = substr($value,6);
 			$value = str_replace('/','\/',$value);
 			$value = '/'.$value.'/';
 			return preg_match($value,$url);
 		} else {
-			return (stripos($url,$value) !== false);
+			return (stripos($url,$value) === 0);
 		}
 	}
 
@@ -65,7 +70,7 @@ class Filter extends \OSM\Tools\Route {
 				' and (:custom1 like a.username or a.username = "")'.
 				' and (:custom2 like a.initiator or a.initiator = "")'.
 				' and (a.appName = "" || b.filterID = :custom3)'.
-			'order by a.priority desc, a.appName asc, a.id asc',
+			' order by a.priority desc, a.appName asc, a.id asc',
 			[
 				':custom0' => $data['type'],
 				':custom1' => $data['email'],
