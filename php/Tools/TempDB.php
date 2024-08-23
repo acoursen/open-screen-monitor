@@ -37,14 +37,13 @@ class TempDB {
 		}
 	}
 
-	public static function scan($query,$debug = false){
+	public static function scan($query){
 		$data = [];
 
 		$query = static::sanitizeFileKey($query);
 
 		$root = $GLOBALS['dataDir'].'/clients/';
 		$files = glob($root.$query);
-		if ($debug){echo "hello\n";print_r([$root,$query,$files]);}
 		foreach($files as $file){
 			if (!is_file($file)){continue;}
 			if (time() < filemtime($file)){
