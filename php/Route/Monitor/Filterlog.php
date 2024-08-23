@@ -106,6 +106,16 @@ class Filterlog extends \OSM\Tools\Route {
 				$where[] = 'type = "main_frame"';
 			}
 
+			if ($device != ''){
+				$where[] = 'deviceid = :device1';
+				$bindings[':device1'] = $device;
+			}
+
+			if ($deviceid != ''){
+				$where[] = 'deviceid = :device2';
+				$bindings[':device2'] = $deviceid;
+			}
+
 			if (!$_SESSION['admin']){
 				$subwhere = [];
 				foreach(array_keys($_SESSION['allowedclients']) as $i => $clientid){
