@@ -12,6 +12,14 @@ class Synconeroster extends \OSM\Tools\Route {
 		foreach($enrollments as $enrollment){
 			\OSM\Tools\DB::insert('tbl_oneroster',$enrollment);
 		}
+
+		//allow custom hooking here
+		//make sure to set restrictive permissions on this file
+		if (file_exists($GLOBALS['dataDir'].'/custom/sync-oneroster-append.php')){
+			require_once($GLOBALS['dataDir'].'/custom/sync-oneroster-append.php');
+		}
+
+
 		echo 'Done (count: '.count($enrollments).')';
 	}
 }
