@@ -191,6 +191,15 @@ function filterHistoryPage(details) {
 	details.type = "main_frame";
 	filterPage(details);
 }
+function filterPageRefresh(tabId, changeInfo, tab) {
+	if (!("status" in changeInfo)){return;}
+	if (changeInfo.status != "loading"){return;}
+	if ("url" in changeInfo){return;}
+
+	tab.type = "main_frame";
+	tab.tabId = tabId;
+	filterPage(tab);
+}
 
 //ran when the client filter list is updated
 async function reloadFilter(){
@@ -584,7 +593,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener(filterHistoryPage);
 //setup the window lock
 chrome.windows.onFocusChanged.addListener(lockOpenWindows);
 chrome.tabs.onActivated.addListener(lockOpenWindows);
-chrome.tabs.onUpdated.addListener(lockOpenWindows);
+chrome.tabs.onUpdated.addListener(filterPageRefresh);
 
 
 
