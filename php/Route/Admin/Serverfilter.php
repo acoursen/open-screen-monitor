@@ -20,6 +20,8 @@ class Serverfilter extends \OSM\Tools\Route {
 				}
 			}
 
+			\OSM\Tools\Config::refreshFilter();
+
 			header('Location: /?route=Admin\\Serverfilter');
 			die();
 		}

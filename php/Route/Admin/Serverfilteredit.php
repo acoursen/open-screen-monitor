@@ -37,6 +37,8 @@ class Serverfilteredit extends \OSM\Tools\Route {
 				\OSM\Tools\DB::update('tbl_filter_entry',['id'=>$id],$fields);
 			}
 
+			\OSM\Tools\Config::refreshFilter();
+
 			header('Location: /?route=Admin\\Serverfilter');
 			die();
 		}

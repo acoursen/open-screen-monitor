@@ -2,6 +2,8 @@
 namespace OSM\Route\Monitor;
 
 class API extends \OSM\Tools\Route {
+	public $renderRaw = true;
+
 	private function validate($sessionID){
 		//Validate actions that require clientID and sessionID
 		$valid = true;
@@ -220,6 +222,8 @@ class API extends \OSM\Tools\Route {
 			]);
 
 			\OSM\Tools\DB::commit();
+
+			\OSM\Tools\Config::refreshFilter();
 
 			die("<h1>Filter updated</h1><script type=\"text/javascript\">setTimeout(function(){window.close();},1500);</script>");
 		}

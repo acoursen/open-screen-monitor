@@ -2,6 +2,8 @@
 namespace OSM\Route\Extension;
 
 class Upload extends \OSM\Tools\Route {
+	public $renderRaw = true;
+
 	public function action(){
 		//in case the http timeout kills the connection, still dump the data
 		ignore_user_abort(1);
