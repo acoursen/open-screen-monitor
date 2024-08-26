@@ -42,10 +42,13 @@ class Upload extends \OSM\Tools\Route {
 		//if these values change it may cause issues
 		$sessionID .= '--'.md5($deviceID.$email);
 
+		//this tells if client is active
 		\OSM\Tools\TempDB::set('ping-device/'.bin2hex($deviceID).'/'.$sessionID, '');
 		\OSM\Tools\TempDB::set('ping-user/'.bin2hex($email).'/'.$sessionID, '');
 
-
+		//this keeps track of sessions for takeOverClass function
+		\OSM\Tools\TempDB::set('sessions-device/'.bin2hex($deviceID).'/'.$sessionID, '', \OSM\Tools\Config::get('userGroupTimeout'));
+		\OSM\Tools\TempDB::set('sessions-user/'.bin2hex($email).'/'.$sessionID, '', \OSM\Tools\Config::get('userGroupTimeout'));
 
 		//debug in
 		if (\OSM\Tools\Config::get('debug')){

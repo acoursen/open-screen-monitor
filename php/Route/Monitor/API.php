@@ -170,7 +170,7 @@ class API extends \OSM\Tools\Route {
 				}
 
 				//take over current sessions
-				$scanRoot = 'ping-'.$groupType.'/'.bin2hex($clientID).'/';
+				$scanRoot = 'sessions-'.$groupType.'/'.bin2hex($clientID).'/';
 				$rows = \OSM\Tools\TempDB::scan($scanRoot.'*');
 				foreach($rows as $key => $empty){
 					$sessionID = str_replace($scanRoot,'',$key);
