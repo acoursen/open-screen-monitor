@@ -126,7 +126,7 @@ class DB {
 		);
 	}
 
-	public static function delete($table, $options){
+	public static function delete($table, $options = []){
 		$options = array_merge([
 			'where' => '',
 			'bindings' => [],
