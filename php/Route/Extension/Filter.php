@@ -9,7 +9,7 @@ class Filter extends \OSM\Tools\Route {
 			$value = substr($value,7);
 
 			$value = str_replace('.','\.',$value);
-			$value = '/^https?:\/\/([a-z0-9\-]*\.)?'.$value.'\//';
+			$value = '/^https?:\/\/([a-z0-9\-\.]*\.)?'.$value.'\//';
 			return preg_match($value,$data['url']);
 		} elseif (substr($value,0,6) == 'regex:') {
 			$value = substr($value,6);
