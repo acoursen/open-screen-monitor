@@ -48,11 +48,13 @@ class Filterlog extends \OSM\Tools\Route {
 		$this->title = 'Open Screen Monitor - Log Viewer';
 		$this->css = '
 			.searchForm {max-width:400px;}
-			.searchForm input, .searchForm select {width:100%;}
+			.searchForm input[type=text], .searchForm select {width:100%;}
 
 			table.results tr td:nth-child(1) {word-break: keep-all;white-space:nowrap;}
 			table.results tr td:nth-child(2) {word-break: break-all;}
 			table.results td {padding:10px;}
+
+			table.noprint tr td {vertical-align:top;}
 
 			@media print {
 				.noprint, .noprint * {display: none !important;}
@@ -67,6 +69,7 @@ class Filterlog extends \OSM\Tools\Route {
 		$results = '';
 		$stats = ['TOTAL' => 0];
 		$domains = [];
+		$users = [];
 		$reportSummary = [];
 		if (isset($_POST['search'])){
 			$where = [];
@@ -170,6 +173,10 @@ class Filterlog extends \OSM\Tools\Route {
 						$domains[] = $domain;
 					}
 				}
+
+				if (!in_array($row['username'],$users)){
+					$users[] = $row['username'];
+				}
 			}
 			$results .= '</tbody></table>';
 		}
@@ -198,19 +205,29 @@ class Filterlog extends \OSM\Tools\Route {
 			}
 			echo '</select>';
 
-		echo '<br /><input type="checkbox" name="showadvanced" value="1" '.(isset($_POST['showadvanced'])?'checked="checked"':'').' />Show Advanced';
+		echo '<br /><br /><input type="checkbox" name="showadvanced" value="1" '.(isset($_POST['showadvanced'])?'checked="checked"':'').' />Show Advanced';
 		if (isset($_POST['showadvanced'])) {
-			echo '<br />Type:<br /><input type="text" name="type" value="'.htmlentities($type).'" />';
+			echo '<br /><br />Type:<br /><input type="text" name="type" value="'.htmlentities($type).'" />';
 			echo '<br />Initiator:<br /><input type="text" name="initiator" value="'.htmlentities($initiator).'" />';
 		}
-		echo '<br /><input type="submit" name="search" value="Search" />';
+		echo '<br /><br /><input type="submit" name="search" value="Search" />';
 		echo '</form>';
-		echo '</td>';
-		echo '<td><div id="reports">';
+		echo '<br /><br />';
+		echo '<div id="reports">';
 			echo '<h3>Report Summary</h3>';
 			foreach($stats as $stat => $count){
 				echo '<br /><b>'.htmlentities($stat).':</b> '.$count;
 			}
+		echo '</div>';
+		echo '</td>';
+		echo '<td><div id="reportsusers">';
+			echo '<h3>Users</h3>';
+			echo '<ul>';
+			sort($users);
+			foreach($users as $user){
+				echo '<li>'.htmlentities($user).'</li>';
+			}
+			echo '</ul>';
 		echo '</div>';
 		echo '<td><div id="reportsurls">';
 			echo '<h3>Sites</h3>';
