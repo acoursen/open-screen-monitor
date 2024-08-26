@@ -45,6 +45,7 @@ class Config {
 			self::$config['screenscrape'] = false;
 			self::$config['cacheCleanupOnStartup'] = false;
 			self::$config['cacheCleanupTime'] = 0;
+			self::$config['cacheCleanupExclude'] = [];
 			self::$config['debug'] = true;
 
 			//overlay settings from database

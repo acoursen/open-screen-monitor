@@ -139,17 +139,38 @@ class Upload extends \OSM\Tools\Route {
 
 		//big clear the cache on startup (including cookies)
 		if (\OSM\Tools\Config::get('cacheCleanupOnStartup') && !isset($data['cacheClearedOnStartup'])){
-			$toReturn['commands'][] = ['action'=>'removeBrowsingData','options'=>['since'=>0],'dataToRemove'=>[
-				'appcache'=>true,
-				'cache'=>true,
-				'cacheStorage'=>true,
-				'cookies'=>true,
-				'fileSystems'=>true,
-				'indexedDB'=>true,
-				'localStorage'=>true,
-				'serviceWorkers'=>true,
-				'webSQL'=>true
-			]];
+			$toReturn['commands'][] = ['action'=>'removeBrowsingData',
+				'options'=>[
+					'since'=>0,
+					'originTypes'=>[
+						'unprotectedWeb'=>true,
+						'protectedWeb'=>true,
+					],
+					'excludeOrigins'=>\OSM\Tools\Config::get('cacheCleanupExclude')
+				],
+				'dataToRemove'=>[
+					'appcache'=>true,
+					'cache'=>true,
+					'cacheStorage'=>true,
+					'cookies'=>true,
+				],
+			];
+			$toReturn['commands'][] = ['action'=>'removeBrowsingData',
+				'options'=>[
+					'since'=>0,
+					'originTypes'=>[
+						'unprotectedWeb'=>true,
+						'protectedWeb'=>true,
+					],
+				],
+				'dataToRemove'=>[
+					'fileSystems'=>true,
+					'indexedDB'=>true,
+					'localStorage'=>true,
+					'serviceWorkers'=>true,
+					'webSQL'=>true,
+				],
+			];
 			$toReturn['commands'][] = ['action'=>'setData','key'=>'cacheClearedOnStartup','value'=>true];
 		}
 
@@ -166,12 +187,21 @@ class Upload extends \OSM\Tools\Route {
 
 		//tiny cache regularly (no cookies)
 		if (\OSM\Tools\Config::get('cacheCleanupTime') > 0 && (!isset($data['cacheLastCleared']) || $data['cacheLastCleared'] < time() - \OSM\Tools\Config::get('cacheCleanupTime')) ){
-			$toReturn['commands'][] = ['action'=>'removeBrowsingData','options'=>['since'=>0],'dataToRemove'=>[
-				'appcache'=>true,
-				'cache'=>true,
-				'cacheStorage'=>true,
-				'fileSystems'=>true,
-			]];
+			$toReturn['commands'][] = ['action'=>'removeBrowsingData',
+				'options'=>[
+					'since'=>0,
+					'originTypes'=>[
+						'unprotectedWeb'=>true,
+						'protectedWeb'=>true,
+					],
+					'excludeOrigins'=>\OSM\Tools\Config::get('cacheCleanupExclude')
+				],
+				'dataToRemove'=>[
+					'appcache'=>true,
+					'cache'=>true,
+					'cacheStorage'=>true,
+				],
+			];
 			$toReturn['commands'][] = ['action'=>'setData','key'=>'cacheLastCleared','value'=>time()];
 		}
 
