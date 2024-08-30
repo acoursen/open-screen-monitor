@@ -36,7 +36,7 @@ class DB {
 		return self::conn()->rollBack();
 	}
 
-	private static function executeQuery($sql,$bindings = []){
+	public static function executeQuery($sql,$bindings = []){
 		$query = self::conn()->prepare($sql);
 		$query->execute($bindings);
 		return $query;
@@ -126,7 +126,7 @@ class DB {
 		);
 	}
 
-	public static function delete($table, $options){
+	public static function delete($table, $options = []){
 		$options = array_merge([
 			'where' => '',
 			'bindings' => [],

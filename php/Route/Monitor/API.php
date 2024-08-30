@@ -2,6 +2,8 @@
 namespace OSM\Route\Monitor;
 
 class API extends \OSM\Tools\Route {
+	public $renderRaw = true;
+
 	private function validate($sessionID){
 		//Validate actions that require clientID and sessionID
 		$valid = true;
@@ -170,7 +172,7 @@ class API extends \OSM\Tools\Route {
 				}
 
 				//take over current sessions
-				$scanRoot = 'ping-'.$groupType.'/'.bin2hex($clientID).'/';
+				$scanRoot = 'sessions-'.$groupType.'/'.bin2hex($clientID).'/';
 				$rows = \OSM\Tools\TempDB::scan($scanRoot.'*');
 				foreach($rows as $key => $empty){
 					$sessionID = str_replace($scanRoot,'',$key);
@@ -202,7 +204,8 @@ class API extends \OSM\Tools\Route {
 			\OSM\Tools\DB::beginTransaction();
 
 			\OSM\Tools\DB::delete('tbl_filter_entry_group',['fields'=>['filterID'=>$groupID]]);
-			foreach(($_POST['apps'] ?? []) as $app){
+			$apps = $_POST['apps'] ?? [];
+			foreach($apps as $app){
 				\OSM\Tools\DB::insert('tbl_filter_entry_group',['filterID'=>$groupID,'appName'=>$app]);
 			}
 
@@ -215,9 +218,12 @@ class API extends \OSM\Tools\Route {
 				'filtermode'=>$filtermode,
 				'defaultdeny'=>$defaultdeny,
 				'defaultallow'=>$defaultallow,
+				'apps'=> $apps,
 			]);
 
 			\OSM\Tools\DB::commit();
+
+			\OSM\Tools\Config::refreshFilter();
 
 			die("<h1>Filter updated</h1><script type=\"text/javascript\">setTimeout(function(){window.close();},1500);</script>");
 		}

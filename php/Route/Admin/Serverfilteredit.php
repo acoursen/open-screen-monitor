@@ -19,6 +19,7 @@ class Serverfilteredit extends \OSM\Tools\Route {
 
 		if (isset($_POST['rule'])){
 			$fields = [
+				'enabled' => isset($_POST['rule']['enabled']) ? 1 : 0,
 				'priority' => $_POST['rule']['priority'] ?? '',
 				'url' => $_POST['rule']['url'] ?? '',
 				'action' => $_POST['rule']['action'] ?? '',
@@ -35,6 +36,8 @@ class Serverfilteredit extends \OSM\Tools\Route {
 			} else {
 				\OSM\Tools\DB::update('tbl_filter_entry',['id'=>$id],$fields);
 			}
+
+			\OSM\Tools\Config::refreshFilter();
 
 			header('Location: /?route=Admin\\Serverfilter');
 			die();
@@ -57,6 +60,7 @@ class Serverfilteredit extends \OSM\Tools\Route {
 		echo '<form method="post">';
 		echo '<h1>Add Rule</h1>';
 		echo '<table>';
+		echo '<tr><td>Enabled</td><td><input name="rule[enabled]" type="checkbox" '.(($data['enabled'] ?? '') == 1 ? 'checked="checked"' : '').'" /></td></tr>';
 		echo '<tr><td>Priority</td><td><input name="rule[priority]" type="number" value="'.htmlentities($data['priority'] ?? '').'" /></td></tr>';
 		echo '<tr><td>URL</td><td><input name="rule[url]" value="'.htmlentities($data['url'] ?? '').'" /></td></tr>';
 		echo '<tr><td>Resource Type</td><td><select name="rule[resourceType]"><option></option>';

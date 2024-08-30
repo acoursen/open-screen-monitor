@@ -45,6 +45,7 @@ class Config {
 			self::$config['screenscrape'] = false;
 			self::$config['cacheCleanupOnStartup'] = false;
 			self::$config['cacheCleanupTime'] = 0;
+			self::$config['cacheCleanupExclude'] = [];
 			self::$config['debug'] = true;
 
 			//overlay settings from database
@@ -81,6 +82,8 @@ class Config {
 			}
 		}
 
+		$config['filterID'] = $groupID;
+
 		return $config;
 	}
 
@@ -98,9 +101,7 @@ class Config {
 
 		if ($groupID != ''){
 			//if we found a group then just return it
-			$group = self::getGroup($groupID);
-			$group['filterID'] = $groupID;
-			return $group;
+			return self::getGroup($groupID);
 		}
 
 		//otherwise look for a device group and set
@@ -108,13 +109,39 @@ class Config {
 		$rows = \OSM\Tools\DB::select('tbl_lab_device',['fields'=>['deviceid'=>$deviceID]]);
 		if ($groupID = ($rows[0]['path'] ?? false)){
 			$groupID = 'lab{'.$groupID.'}';
-			$group = self::getGroup($groupID);
 			\OSM\Tools\TempDB::set('groupID/'.$sessionID, $groupID, \OSM\Tools\Config::get('userGroupTimeout'));
-			$group['filterID'] = $groupID;
-			return $group;
+			return self::getGroup($groupID);
 		}
 
 		//todo figure out default
 		return false;
+	}
+
+	public static function filterPath(){
+		//put in clients folder so might be ramdisked
+		return $GLOBALS['dataDir'].'clients/filter.json';
+	}
+
+	public static function refreshFilter(){
+		$data = [
+			'apps' => [],
+			'entries' => [],
+		];
+
+		$rows = \OSM\Tools\DB::selectRaw('select * from tbl_filter_entry_group');
+		foreach ($rows as $row){
+			$data['apps'][ $row['appName'] ][] = $row['filterID'];
+		}
+
+		$data['entries'] = \OSM\Tools\DB::selectRaw('select * from tbl_filter_entry where enabled = 1 order by priority desc, appName asc, id asc');
+
+		file_put_contents(static::filterPath(),json_encode($data,\JSON_PRETTY_PRINT));
+	}
+
+	public static function getFilter(){
+		if (!file_exists(static::filterPath())){
+			static::refreshFilter();
+		}
+		return json_decode(file_get_contents(static::filterPath()),true);
 	}
 }

@@ -2,6 +2,8 @@
 namespace OSM\Route\Extension;
 
 class Upload extends \OSM\Tools\Route {
+	public $renderRaw = true;
+
 	public function action(){
 		//in case the http timeout kills the connection, still dump the data
 		ignore_user_abort(1);
@@ -42,10 +44,13 @@ class Upload extends \OSM\Tools\Route {
 		//if these values change it may cause issues
 		$sessionID .= '--'.md5($deviceID.$email);
 
+		//this tells if client is active
 		\OSM\Tools\TempDB::set('ping-device/'.bin2hex($deviceID).'/'.$sessionID, '');
 		\OSM\Tools\TempDB::set('ping-user/'.bin2hex($email).'/'.$sessionID, '');
 
-
+		//this keeps track of sessions for takeOverClass function
+		\OSM\Tools\TempDB::set('sessions-device/'.bin2hex($deviceID).'/'.$sessionID, '', \OSM\Tools\Config::get('userGroupTimeout'));
+		\OSM\Tools\TempDB::set('sessions-user/'.bin2hex($email).'/'.$sessionID, '', \OSM\Tools\Config::get('userGroupTimeout'));
 
 		//debug in
 		if (\OSM\Tools\Config::get('debug')){
@@ -136,17 +141,38 @@ class Upload extends \OSM\Tools\Route {
 
 		//big clear the cache on startup (including cookies)
 		if (\OSM\Tools\Config::get('cacheCleanupOnStartup') && !isset($data['cacheClearedOnStartup'])){
-			$toReturn['commands'][] = ['action'=>'removeBrowsingData','options'=>['since'=>0],'dataToRemove'=>[
-				'appcache'=>true,
-				'cache'=>true,
-				'cacheStorage'=>true,
-				'cookies'=>true,
-				'fileSystems'=>true,
-				'indexedDB'=>true,
-				'localStorage'=>true,
-				'serviceWorkers'=>true,
-				'webSQL'=>true
-			]];
+			$toReturn['commands'][] = ['action'=>'removeBrowsingData',
+				'options'=>[
+					'since'=>0,
+					'originTypes'=>[
+						'unprotectedWeb'=>true,
+						'protectedWeb'=>true,
+					],
+					'excludeOrigins'=>\OSM\Tools\Config::get('cacheCleanupExclude')
+				],
+				'dataToRemove'=>[
+					'appcache'=>true,
+					'cache'=>true,
+					'cacheStorage'=>true,
+					'cookies'=>true,
+				],
+			];
+			$toReturn['commands'][] = ['action'=>'removeBrowsingData',
+				'options'=>[
+					'since'=>0,
+					'originTypes'=>[
+						'unprotectedWeb'=>true,
+						'protectedWeb'=>true,
+					],
+				],
+				'dataToRemove'=>[
+					'fileSystems'=>true,
+					'indexedDB'=>true,
+					'localStorage'=>true,
+					'serviceWorkers'=>true,
+					'webSQL'=>true,
+				],
+			];
 			$toReturn['commands'][] = ['action'=>'setData','key'=>'cacheClearedOnStartup','value'=>true];
 		}
 
@@ -163,12 +189,21 @@ class Upload extends \OSM\Tools\Route {
 
 		//tiny cache regularly (no cookies)
 		if (\OSM\Tools\Config::get('cacheCleanupTime') > 0 && (!isset($data['cacheLastCleared']) || $data['cacheLastCleared'] < time() - \OSM\Tools\Config::get('cacheCleanupTime')) ){
-			$toReturn['commands'][] = ['action'=>'removeBrowsingData','options'=>['since'=>0],'dataToRemove'=>[
-				'appcache'=>true,
-				'cache'=>true,
-				'cacheStorage'=>true,
-				'fileSystems'=>true,
-			]];
+			$toReturn['commands'][] = ['action'=>'removeBrowsingData',
+				'options'=>[
+					'since'=>0,
+					'originTypes'=>[
+						'unprotectedWeb'=>true,
+						'protectedWeb'=>true,
+					],
+					'excludeOrigins'=>\OSM\Tools\Config::get('cacheCleanupExclude')
+				],
+				'dataToRemove'=>[
+					'appcache'=>true,
+					'cache'=>true,
+					'cacheStorage'=>true,
+				],
+			];
 			$toReturn['commands'][] = ['action'=>'setData','key'=>'cacheLastCleared','value'=>time()];
 		}
 

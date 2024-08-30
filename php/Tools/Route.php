@@ -6,6 +6,7 @@ class Route {
 	public $css = '';
 	public $title = 'Open Screen Monitor';
 	public $leftHeader = '';
+	public $renderRaw = false;
 
 	public function urlRoot(){
 		$https = ($_SERVER['HTTPS'] ?? '') != '';
@@ -44,7 +45,25 @@ class Route {
 		die();
 	}
 
+	public function sendAndClose($data){
+		//close all output buffers just in case
+		while(ob_get_level() > 0){ob_end_flush();}
+
+		//this tells php to keep going after the client disconnects
+		ignore_user_abort();
+		//the client shouldn't disconnect untless it is told to and it knows it has all the data
+		header("Connection: close");
+		header("Content-Length: ".strlen($data));
+		echo $data;
+	}
+
 	public function render(){
+		//skip this function (ie: extension & api)
+		if ($this->renderRaw){
+			$this->action();
+			die();
+		}
+
 		//get the html here so if a redirect needs to happen we haven't already sent anything.
 		//We also are doing it via output buffering so we can use echo in the action and not keep a running variable;
 		ob_start();
