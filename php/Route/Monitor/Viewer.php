@@ -8,8 +8,10 @@ class Viewer extends \OSM\Tools\Route {
 		$groupID = $_GET['groupID'] ?? '';
 		$group = $_SESSION['groups'][$groupID] ?? false;
 		if ($group === false){
-			http_response_code(403);
-			die('Access Denied: Invalid Group');
+			//send them back to the home page if we can't find the lab
+			//not as clear what is going on but will help them find a solution quicker
+			header('Location: /');
+			die();
 		}
 
 		$this->title = 'Open Screen Monitor - '.htmlentities($group['name']);

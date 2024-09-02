@@ -4,6 +4,7 @@ namespace OSM\Route\Monitor;
 class Googleclassroom extends \OSM\Tools\Route {
 	public function action(){
 		$this->requireLogin();
+		$this->requireCurrentGoogle();
 
 		if (\OSM\Tools\Config::get('enableGoogleClassroom')) {
 			die('OSM does not have Google Classroom enabled');

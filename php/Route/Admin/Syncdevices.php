@@ -6,6 +6,7 @@ class Syncdevices extends \OSM\Tools\Route {
 		global $dataDir;
 
 		$this->requireAdmin();
+		$this->requireCurrentGoogle();
 
 		//sync devices
 		$context = stream_context_create(['http'=>[

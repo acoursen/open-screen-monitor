@@ -3,7 +3,8 @@ namespace OSM\Route;
 
 class Index extends \OSM\Tools\Route {
 	function action(){
-		if (isset($_SESSION['token']) && \OSM\Tools\Google::checkToken($_SESSION['token'])) {
+		$validuntil = $_SESSION['validuntil'] ?? 0;
+		if (time() < $validuntil){
 			$this->css = '
 				.columns {display:flex;justify-content:space-around;}
 				.columns ul li {width:500px;}

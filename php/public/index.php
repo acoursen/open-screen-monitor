@@ -19,7 +19,12 @@ if (!isset($_GET['route'])){
 		\OSM\Tools\Log::add('login');
 
 		//redirect them back to self, except this time they will be logged in
-		header('Location: /');
+		if (isset($_SESSION['loginredirect'])){
+			header('Location: '.$_SESSION['loginredirect']);
+			unset($_SESSION['loginredirect']);
+		} else {
+			header('Location: /');
+		}
 		die();
 	} elseif (isset($_GET['non-enterprise-device']) && Tools\Google::checkToken($_SESSION['token']) && $_SESSION['admin']){
 		$_SESSION['allowedclients'] = ['non-enterprise-device'=>'Non Enterprise Devices'];

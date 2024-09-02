@@ -23,6 +23,9 @@ class Config {
 			//how long a user that is pulled into a class is in there before it times out
 			self::$config['userGroupTimeout'] = 28800; //60*60*8
 
+			//how long a web session lasts before it times out
+			self::$config['sessionTimeout'] = 28800; //60*60*8
+
 			//set the OSM lab filter message
 			self::$config['filterMessage'] = [
 			        'title' => 'OSM Server says ... ',
