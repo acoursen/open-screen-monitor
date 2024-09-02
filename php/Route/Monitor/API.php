@@ -180,6 +180,12 @@ class API extends \OSM\Tools\Route {
 				$rows = \OSM\Tools\TempDB::scan($scanRoot.'*');
 				foreach($rows as $key => $empty){
 					$sessionID = str_replace($scanRoot,'',$key);
+
+					//check if we take over sessions on non-enterprise-devices
+					if (\OSM\Tools\TempDB::get('deviceID/'.$sessionID) == 'non-enterprise-device' && \OSM\Tools\Config::get('filterViaServerGroupIgnoreNonEnterprise')){
+						continue;
+					}
+
 					\OSM\Tools\TempDB::set('groupID/'.$sessionID, $groupID, \OSM\Tools\Config::get('userGroupTimeout'));
 				}
 			}

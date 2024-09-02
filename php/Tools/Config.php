@@ -42,6 +42,7 @@ class Config {
 			self::$config['showNonEnterpriseDevices'] = false;
 			self::$config['filterResourceTypes'] = ["main_frame","sub_frame","xmlhttprequest","trigger_exempt"];
 			self::$config['filterViaServer'] = false;
+			self::$config['filterViaServerGroupIgnoreNonEnterprise'] = true;
 			self::$config['filterviaserverShowBlockPage'] = false;
 			self::$config['filterviaserverDefaultFilterTypes'] = ['main_frame','sub_frame'];
 			self::$config['filterviaserverDefaultTriggerTypes'] = ['main_frame','sub_frame'];
@@ -94,6 +95,13 @@ class Config {
 	}
 
 	public static function getGroupFromSession($sessionID){
+		//check for if we config non-enterprise devices
+		$deviceID = \OSM\Tools\TempDB::get('deviceID/'.$sessionID);
+		if ($deviceID == 'non-enterprise-device' && \OSM\Tools\Config::get('filterViaServerGroupIgnoreNonEnterprise')){
+			return false;
+		}
+
+
 		$email = \OSM\Tools\TempDB::get('email/'.$sessionID);
 
 		//look for a temp bypass
