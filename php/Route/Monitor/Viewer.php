@@ -47,6 +47,7 @@ div.notInGroup {border: 5px solid yellow !important;}
 
 		$this->js = '
 			window.osm = {
+				admin: '.($_SESSION['admin'] ? 'true' : 'false').',
 				groupID: "",
 				imagePool: {},
 				imgcss: {"width":400,"height":300,"fontsize":16,"multiplier":1,"auto":1},
@@ -319,25 +320,44 @@ div.notInGroup {border: 5px solid yellow !important;}
 
 				$("#takeOverClass").click(window.osm.takeOverClass);
 
-				$("#massLock").click(function(){$("#activedevs > div").each(function(){window.osm.actions.lockDev({"sessionID":this.dataset.sessionid});});});
-				$("#massUnlock").click(function(){$("#activedevs > div").each(function(){window.osm.actions.unlockDev({"sessionID":this.dataset.sessionid});});});
-				$("#massCloseAllTabs").click(function(){$("#activedevs > div").each(function(){window.osm.actions.closeAllTabs({"sessionID":this.dataset.sessionid});});});
+				$("#massLock").click(function(){$("#activedevs > div").each(function(){
+					if(!window.osm.admin && this.classList.contains("notInGroup")){return;}
+					window.osm.actions.lockDev({"sessionID":this.dataset.sessionid});
+				});});
+				$("#massUnlock").click(function(){$("#activedevs > div").each(function(){
+					if(!window.osm.admin && this.classList.contains("notInGroup")){return;}
+					window.osm.actions.unlockDev({"sessionID":this.dataset.sessionid});
+				});});
+				$("#massCloseAllTabs").click(function(){$("#activedevs > div").each(function(){
+					if(!window.osm.admin && this.classList.contains("notInGroup")){return;}
+					window.osm.actions.closeAllTabs({"sessionID":this.dataset.sessionid});
+				});});
 				$("#massOpenurl").click(function(){
 					var url1 = prompt("Please enter an URL", "http://");
 					if (url1 == ""){return;}
-					$("#activedevs > div").each(function(){window.osm.actions.openUrl({"sessionID":this.dataset.sessionid,"url":url1});});
+					$("#activedevs > div").each(function(){
+						if(!window.osm.admin && this.classList.contains("notInGroup")){return;}
+						window.osm.actions.openUrl({"sessionID":this.dataset.sessionid,"url":url1})
+					;});
 				});
 
 				$("#massTts").click(function(){
+					if(!window.osm.admin && this.classList.contains("notInGroup")){return;}
 					var text1 = prompt("Please enter the message", "");
 					if (text1 == ""){return;}
-					$("#activedevs > div").each(function(){window.osm.actions.tts({"sessionID":this.dataset.sessionid,"text":text1});});
+					$("#activedevs > div").each(function(){
+						if(!window.osm.admin && this.classList.contains("notInGroup")){return;}
+						window.osm.actions.tts({"sessionID":this.dataset.sessionid,"text":text1})
+					;});
 				});
 
 				$("#massSendmessage").click(function(){
 					var message1 = prompt("Please enter a message", "");
 					if (message1 == ""){return;}
-					$("#activedevs > div").each(function(){window.osm.actions.sendMessage({"sessionID":this.dataset.sessionid,"message":message1});});
+					$("#activedevs > div").each(function(){
+						if(!window.osm.admin && this.classList.contains("notInGroup")){return;}
+						window.osm.actions.sendMessage({"sessionID":this.dataset.sessionid,"message":message1})
+					;});
 				});
 
 				$("#massHide").click(function(){
@@ -354,7 +374,11 @@ div.notInGroup {border: 5px solid yellow !important;}
 					if ("osmaction" in e.target.dataset){
 						var action = e.target.dataset.osmaction;
 						var sessionID = e.target.parentElement.parentElement.dataset.sessionid;
-						window.osm.actions[action]({sessionID:sessionID});
+						if (window.osm.admin || !e.target.parentElement.parentElement.classList.contains("notInGroup")){
+							window.osm.actions[action]({sessionID:sessionID});
+						} else {
+							alert("Invalid action: client not in group");
+						}
 						return false;
 					}
 					console.log(e);
@@ -375,7 +399,7 @@ div.notInGroup {border: 5px solid yellow !important;}
 								//thisdiv.css("height","auto");
 								//thisdiv.css("width","auto");
 								thisdiv.find(".info").html("");
-							} else {
+							} else if (window.osm.admin || !this.classList.contains("notInGroup")) {
 								thisdiv.addClass("fullscreen");
 								$("#hidemenu").click();
 								updateInfo();
