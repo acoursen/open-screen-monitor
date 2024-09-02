@@ -23,6 +23,9 @@ class Config {
 			//how long a user that is pulled into a class is in there before it times out
 			self::$config['userGroupTimeout'] = 28800; //60*60*8
 
+			//how long a user that is pulled into bypass is in there before it times out
+			self::$config['bypassTimeout'] = 28800; //60*60*8
+
 			//how long a web session lasts before it times out
 			self::$config['sessionTimeout'] = 28800; //60*60*8
 
@@ -91,19 +94,23 @@ class Config {
 	}
 
 	public static function getGroupFromSession($sessionID){
-		$groupID = \OSM\Tools\TempDB::get('groupID/'.$sessionID);
+		$email = \OSM\Tools\TempDB::get('email/'.$sessionID);
 
-		if ($groupID == ''){
-			//look for a default group id by client
-			$clientID = \OSM\Tools\TempDB::get('email/'.$sessionID);
-			$groupID = \OSM\Tools\TempDB::get('groupID-userDefault/'.bin2hex($clientID));
-			if ($groupID != ''){
-				\OSM\Tools\TempDB::set('groupID/'.$sessionID, $groupID, \OSM\Tools\Config::get('userGroupTimeout'));
-			}
+		//look for a temp bypass
+		//this doesn't get set so that when the bypass is over,
+		//it instantly goes back to where it should have been
+		if ($bypass = \OSM\Tools\TempDB::get('bypass/'.bin2hex($email))){
+			return self::getGroup('bypass{'.$bypass.'}');
 		}
 
-		if ($groupID != ''){
-			//if we found a group then just return it
+		//return group if set
+		if ($groupID = \OSM\Tools\TempDB::get('groupID/'.$sessionID)){
+			return self::getGroup($groupID);
+		}
+
+		//look for a default group id by client and set
+		if ($groupID = \OSM\Tools\TempDB::get('groupID-userDefault/'.bin2hex($email))){
+			\OSM\Tools\TempDB::set('groupID/'.$sessionID, $groupID, \OSM\Tools\Config::get('userGroupTimeout'));
 			return self::getGroup($groupID);
 		}
 

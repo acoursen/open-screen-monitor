@@ -91,6 +91,10 @@ class API extends \OSM\Tools\Route {
 						$data['sessions'][$sessionID]['title'] = $email.'<br />('.$clientName.')';
 						$data['sessions'][$sessionID]['locked'] = \OSM\Tools\TempDB::get('lock/'.$sessionID) != '';
 						$data['sessions'][$sessionID]['groupID'] = \OSM\Tools\TempDB::get('groupID/'.$sessionID);
+
+						if ($bypass = \OSM\Tools\TempDB::get('bypass/'.bin2hex($email))){
+							$data['sessions'][$sessionID]['groupID'] = 'bypass{'.$bypass.'}';
+						}
 					}
 				}
 			}

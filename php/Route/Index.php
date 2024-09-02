@@ -95,10 +95,14 @@ class Index extends \OSM\Tools\Route {
 				echo '</ul>';
 				echo '</div>';
 			}
-			if ($_SESSION['admin']) {
+			if ($_SESSION['admin'] || $_SESSION['bypass']) {
 				echo '<div>';
 				echo '<h3>Admin Tools</h3>';
 				echo '<ul class="list-group">';
+				if ($_SESSION['bypass']){
+					echo '<li class="list-group-item"><a href="/?route=Admin\Bypass">Bypass</a></li>';
+				}
+				if ($_SESSION['admin']){
 					echo '<li class="list-group-item"><a href="/?route=Admin\Config">Config Editor</a></li>';
 					echo '<li class="list-group-item"><a href="/?route=Admin\Buildextension">Build Extension</a></li>';
 					echo '<li class="list-group-item"><a href="/?route=Admin\Permissions">Permissions</a></li>';
@@ -116,6 +120,7 @@ class Index extends \OSM\Tools\Route {
 						echo '<li class="list-group-item"><a href="/?non-enterprise-device">Non Enterprise Devices</a></li>';
 						echo '<li class="list-group-item"><a href="/?route=Admin\Showall">Show All</a></li>';
 					}
+				}
 				echo '</ul>';
 				echo '</div>';
 			}

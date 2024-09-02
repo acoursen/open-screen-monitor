@@ -101,6 +101,15 @@ class Google {
 		]);
 		$_SESSION['admin'] = (count($adminPermission) > 0);
 
+		//check for bypass permission
+		$bypassPermission = \OSM\Tools\DB::select('tbl_lab_permission',[
+			'fields'=>[
+				'username'=>$_SESSION['email'],
+				'groupid'=>'bypass',
+			]
+		]);
+		$_SESSION['bypass'] = $_SESSION['admin'] || (count($bypassPermission) > 0);
+
 		return true;
 	}
 }
