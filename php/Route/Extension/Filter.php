@@ -62,6 +62,10 @@ class Filter extends \OSM\Tools\Route {
 
 		$defaultTypes = \OSM\Tools\Config::get('filterviaserverDefaultFilterTypes');
 
+		//get group settings
+		//this may need to be switched to a cache file like entries below
+		$group = \OSM\Tools\Config::getGroup($data['filterID']);
+
 		//first check whitelist
 		$filter = \OSM\Tools\Config::getFilter();
 		foreach($filter['entries'] as $entry){
@@ -77,7 +81,12 @@ class Filter extends \OSM\Tools\Route {
 
 			if (!in_array($entry['initiator'],['',$entry['initiator']])){continue;}
 
-			if ($entry['appName'] != '' && !in_array($data['filterID'], ($filter['apps'][$entry['appName']]??[]))){continue;}
+			if ($entry['appName'] != ''){
+				//app list is only for defaultdeny
+				if ($group['filtermode'] == 'defaultallow'){continue;}
+				//app isn't enabled for group
+				if (!in_array($data['filterID'], ($filter['apps'][$entry['appName']]??[]))){continue;}
+			}
 
 			if ($this->testURL($data,$entry['url'])){
 				$action = $entry['action'];
@@ -87,12 +96,10 @@ class Filter extends \OSM\Tools\Route {
 		}
 
 		//then check for default
-		//(this may need to be switched to a cache file like entries above)
 		if ($action == ''){
 			if ($data['filterID'] == '' || $data['filterID'] == '__OSMDEFAULT__'){
 				$action = 'ALLOW';
 			} else {
-				$group = \OSM\Tools\Config::getGroup($data['filterID']);
 				$list = $group['filterlist-'.$group['filtermode']] ?? '';
 				$list = explode("\n",$list);
 				$found = false;

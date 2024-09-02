@@ -17,10 +17,11 @@ class Viewer extends \OSM\Tools\Route {
 		$this->css = '
 .leftHeader input {margin:5px;}
 .content {display:flex;background-color: #C0C0C0;min-height:100%;}
-#activedevs {text-align:center;}
-#activedevs > div {display:inline-block;margin: 5px;border: 5px solid white;}
+#activedevs {text-align:center;display: flex;flex-wrap: wrap;justify-content: center;}
+#activedevs > div {display:inline-block;margin: 5px;border: 5px solid white;background-color:black;}
 #activedevs .buttons {border-bottom: 1px solid black;background-color:white;cursor:pointer;display:flex;justify-content:space-evenly;align-content:center;flex-wrap:wrap;align-items:center;}
 #activedevs .buttons span {line-height:100%;font-size:1em;}
+#activedevs .buttons span.title {display:inline-block;max-width:60%;word-break:break-all;}
 #activedevs .info {display:none;}
 #otherdevs > div {clear:both;padding-top:10px;display:flex;flex-direction:row;flex-wrap:wrap;justify-content: space-evenly;}
 #otherdevs > div div {display:inline-block;width: 300px;min-height:75px;padding:5px;margin: 5px;background-color:black;color:white;border: 4px solid black;text-align:center;}
@@ -421,9 +422,14 @@ div.notInGroup {border: 5px solid yellow !important;}
 					$("#filterlistdefaultallow").hide();
 					$("#filterlistheader").show();
 
-					if (this.value == "defaultdeny"){$("#filterlistdefaultdeny").show();}
-					if (this.value == "defaultallow"){$("#filterlistdefaultallow").show();}
-					if (this.value == "disabled"){$("#filterlistheader").hide();}
+					if (this.value == "defaultdeny"){
+						$("#divApps").show();
+						$("#filterlistdefaultdeny").show();
+					}
+					if (this.value == "defaultallow"){
+						$("#divApps").hide();
+						$("#filterlistdefaultallow").show();
+					}
 				});
 				$("input[name=filtermode]:checked").change();
 
@@ -470,7 +476,7 @@ div.notInGroup {border: 5px solid yellow !important;}
 			echo '<label class="form-check-label" for="filterOption'.$option.'">'.$description.'</label>';
 			echo '</div>';
 		}
-		echo '<br /><b>Apps</b>';
+		echo '<div id="divApps"><br /><b>Apps</b>';
 		$apps = \OSM\Tools\DB::select("tbl_filter_entry_group",['fields'=>['filterID'=>$groupID]]);
 		$appNames = [];
 		foreach($apps as $app){
@@ -481,11 +487,16 @@ div.notInGroup {border: 5px solid yellow !important;}
 		foreach($rows as $row){
 			echo '<br /><input type="checkbox" '.(in_array($row['appName'],$appNames) ? 'checked' : '').' class="apps" name="apps[]" value="'.htmlentities($row['appName']).'" /> '.htmlentities($row['appName']);
 		}
-		echo '<br /><br />';
+		echo '</div><br />';
 		echo '<div style="text-align:center;">';
-		echo '<div id="filterlistheader">Extra Sites (one per line)</div>';
-		echo '<textarea name="filterlist-defaultdeny" id="filterlistdefaultdeny" style="text-align:left;width: 90%;height:200px;">'.htmlentities($groupConfig['filterlist-defaultdeny']).'</textarea>';
-		echo '<textarea name="filterlist-defaultallow" id="filterlistdefaultallow" style="text-align:left;width: 90%;height:200px;">'.htmlentities($groupConfig['filterlist-defaultallow']).'</textarea>';
+		echo '<div id="filterlistdefaultdeny">';
+		echo '<b>Additional Allowed Sites<br>One per line<br >example: https://www.google.com/</b><br />';
+		echo '<textarea name="filterlist-defaultdeny" style="text-align:left;width: 90%;height:200px;">'.htmlentities($groupConfig['filterlist-defaultdeny']).'</textarea>';
+		echo '</div>';
+		echo '<div id="filterlistdefaultallow">';
+		echo '<b>Exceptions (Blocked Sites)<br>One per line<br >example: https://www.google.com/</b><br />';
+		echo '<textarea name="filterlist-defaultallow" style="text-align:left;width: 90%;height:200px;">'.htmlentities($groupConfig['filterlist-defaultallow']).'</textarea>';
+		echo '</div>';
 		echo '<input type="submit" id="applyfilter" value="Apply Changes" class="btn btn-primary" />';
 		echo '</div>';
 		echo '</form>';
