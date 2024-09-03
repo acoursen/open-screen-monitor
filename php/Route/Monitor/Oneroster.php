@@ -35,6 +35,7 @@ class Oneroster extends \OSM\Tools\Route {
 			}
 			asort($_SESSION['groups'][ $groupID ]['clients']);
 			header('Location: /?route=Monitor\Viewer&groupID='.urlencode($groupID));
+			\OSM\Tools\Log::add('viewer.oneroster',$groupID);
 		}
 		die();
 	}

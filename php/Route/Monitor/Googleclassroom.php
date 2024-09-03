@@ -49,6 +49,7 @@ class Googleclassroom extends \OSM\Tools\Route {
 			asort($_SESSION['allowedclients']);
 			$_SESSION['lab'] = ($_SESSION['userLabNames'][ $_GET['course'] ] ?? 'Unknown').' #'.$_GET['course'];
 			header('Location: /?route=Monitor\Viewer');
+			\OSM\Tools\Log::add('viewer.googleclassroom',$groupID);
 			die();
 		}
 

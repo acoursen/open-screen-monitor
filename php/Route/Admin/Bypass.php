@@ -42,6 +42,7 @@ class Bypass extends \OSM\Tools\Route {
 			asort($_SESSION['groups'][ $groupID ]['clients']);
 			header('Location: /?route=Monitor\Viewer&groupID='.urlencode($groupID));
 
+			\OSM\Tools\Log::add('viewer.bypass',$groupID);
 			die();
 		}
 
@@ -52,6 +53,7 @@ class Bypass extends \OSM\Tools\Route {
 			$group = $add['group'] ?? '';
 			if (isset($namesByEmail[$email]) && $group != ''){
 				\OSM\Tools\TempDB::set('bypass/'.bin2hex($email),$group,\OSM\Tools\Config::get('bypassTimeout'));
+				\OSM\Tools\Log::add('bypass.addStudent',$email,$group);
 				$this->redirect('Admin\Bypass');
 			}
 		}
@@ -59,6 +61,7 @@ class Bypass extends \OSM\Tools\Route {
 
 		if ($delete = $_POST['delete'] ?? false){
 			\OSM\Tools\TempDB::del('bypass/'.bin2hex($delete));
+			\OSM\Tools\Log::add('bypass.deleteStudent',$delete);
 			$this->redirect('Admin\Bypass');
 		}
 
