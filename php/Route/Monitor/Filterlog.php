@@ -138,7 +138,7 @@ class Filterlog extends \OSM\Tools\Route {
 			}
 
 			$where = implode(' AND ',$where);
-			$rows = \OSM\Tools\DB::select('tbl_filter_log',['where'=>$where,'bindings'=>$bindings,'order'=>'date desc, time desc']);
+			$rows = \OSM\Tools\DB::select('tbl_filter_log',['where'=>$where,'bindings'=>$bindings,'order'=>'date desc, time desc, id desc']);
 			$results .= '<table class="w3-table-all results"><tbody>';
 			foreach ($rows as $row){
 				$results .= '<tr><td>';
