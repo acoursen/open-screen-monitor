@@ -98,7 +98,7 @@ class Bypass extends \OSM\Tools\Route {
 				echo '<td>'.htmlentities($group).' (<a href="/?route=Admin\Bypass&group='.urlencode($group).'">View</a>)</td>';
 				echo '<td>'.htmlentities($email).'</td>';
 				echo '<td>'.htmlentities($name).'</td>';
-				echo '<td><form method="post"><input type="hidden" name="delete" value="'.htmlentities($email).'" /><input type="submit" value="Delete" /></td>';
+				echo '<td><form method="post"><input type="hidden" name="delete" value="'.htmlentities($email).'" /><input type="submit" value="Delete" /></form></td>';
 				echo '</tr>';
 			}
 		}
