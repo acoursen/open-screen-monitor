@@ -98,6 +98,7 @@ class Config {
 		//check for if we config non-enterprise devices
 		$deviceID = \OSM\Tools\TempDB::get('deviceID/'.$sessionID);
 		if ($deviceID == 'non-enterprise-device' && \OSM\Tools\Config::get('filterViaServerGroupIgnoreNonEnterprise')){
+			\OSM\Tools\TempDB::del('groupID/'.$sessionID);
 			return false;
 		}
 

@@ -36,7 +36,11 @@ class Upload extends \OSM\Tools\Route {
 		}
 
 		$deviceID = $data['deviceID'] ?? '';
-		if ($deviceID == '') {$deviceID = 'non-enterprise-device';}
+		if ($deviceID == '') {
+			$deviceID = 'non-enterprise-device';
+			$toReturn['commands'][] = ['action'=>'setData','key'=>'deviceID','value'=>$deviceID];
+			$data['deviceID'] = $deviceID;
+		}
 		$email = $data['email'] ?? '';
 		if ($email == ''){$email = 'unknown';}
 

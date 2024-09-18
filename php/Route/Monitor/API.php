@@ -86,6 +86,11 @@ class API extends \OSM\Tools\Route {
 						$email = \OSM\Tools\TempDB::get('email/'.$sessionID);
 						if($email == ''){$email = '-- not signed in --';}
 
+						//check if we take over sessions on non-enterprise-devices
+						if (\OSM\Tools\TempDB::get('deviceID/'.$sessionID) == 'non-enterprise-device' && \OSM\Tools\Config::get('filterViaServerGroupIgnoreNonEnterprise')){
+							continue;
+						}
+
 						$data['sessions'][$sessionID] = [];
 						$data['sessions'][$sessionID]['clientID'] = $clientID;
 						$data['sessions'][$sessionID]['title'] = $email.'<br />('.$clientName.')';
@@ -125,6 +130,7 @@ class API extends \OSM\Tools\Route {
 		if ($action == 'info'){
 			$html = '';
 			$html .= '<b>IP: '.htmlentities(\OSM\Tools\TempDB::get('ip/'.$sessionID)).'</b>';
+			$html .= '<br /><b>Device ID: '.htmlentities(\OSM\Tools\TempDB::get('deviceID/'.$sessionID)).'</b>';
 
 			$tabs = \OSM\Tools\TempDB::get('tabs/'.$sessionID);
 			$tabs = json_decode($tabs,true);
