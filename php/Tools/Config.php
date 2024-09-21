@@ -38,6 +38,7 @@ class Config {
 			        ]
 			];
 
+			self::$config['deviceLastUserLookback'] = 7;
 			self::$config['showStartupNotification'] = false;
 			self::$config['showNonEnterpriseDevices'] = false;
 			self::$config['filterResourceTypes'] = ["main_frame","sub_frame","xmlhttprequest","trigger_exempt"];

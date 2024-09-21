@@ -120,35 +120,34 @@ class Index extends \OSM\Tools\Route {
 				echo '</ul>';
 				echo '</div>';
 			}
-			if ($_SESSION['admin'] || $_SESSION['bypass']) {
-				echo '<div>';
-				echo '<h3>Admin Tools</h3>';
-				echo '<ul class="list-group">';
-				if ($_SESSION['bypass']){
-					echo '<li class="list-group-item"><a href="/?route=Admin\Bypass">Bypass</a></li>';
-				}
-				if ($_SESSION['admin']){
-					echo '<li class="list-group-item"><a href="/?route=Admin\Config">Config Editor</a></li>';
-					echo '<li class="list-group-item"><a href="/?route=Admin\Buildextension">Build Extension</a></li>';
-					echo '<li class="list-group-item"><a href="/?route=Admin\Permissions">Permissions</a></li>';
-					echo '<li class="list-group-item"><a href="/?route=Admin\Serverfilter">Server Filter Lists</a></li>';
-					if (\OSM\Tools\Config::get('enableLab')) {
-						echo '<li class="list-group-item"><a href="/?route=Admin\Syncdevices" >Sync Devices</a></li>';
-					}
-					if (\OSM\Tools\Config::get('enableOneRoster')) {
-						echo '<li class="list-group-item"><a href="/?route=Admin\Synconeroster" >Sync One Roster</a></li>';
-					}
-					echo '<li class="list-group-item"><a href="/?route=Admin\Usagereport" >Usage Report</a></li>';
-					echo '<li class="list-group-item"><a href="/?route=Admin\Logviewer">View Log</a></li>';
-					echo '<li class="list-group-item"><a href="/?route=Monitor\Filterlog">View Browsing History</a></li>';
-					if (\OSM\Tools\Config::get('showNonEnterpriseDevices')){
-						echo '<li class="list-group-item"><a href="/?non-enterprise-device">Non Enterprise Devices</a></li>';
-						echo '<li class="list-group-item"><a href="/?route=Admin\Showall">Show All</a></li>';
-					}
-				}
-				echo '</ul>';
-				echo '</div>';
+			echo '<div>';
+			echo '<h3>Admin Tools</h3>';
+			echo '<ul class="list-group">';
+			echo '<li class="list-group-item"><a href="/?route=Admin\Devicelastuser">Find Last User for Device</a></li>';
+			if ($_SESSION['bypass']){
+				echo '<li class="list-group-item"><a href="/?route=Admin\Bypass">Bypass</a></li>';
 			}
+			if ($_SESSION['admin']){
+				echo '<li class="list-group-item"><a href="/?route=Admin\Config">Config Editor</a></li>';
+				echo '<li class="list-group-item"><a href="/?route=Admin\Buildextension">Build Extension</a></li>';
+				echo '<li class="list-group-item"><a href="/?route=Admin\Permissions">Permissions</a></li>';
+				echo '<li class="list-group-item"><a href="/?route=Admin\Serverfilter">Server Filter Lists</a></li>';
+				if (\OSM\Tools\Config::get('enableLab')) {
+					echo '<li class="list-group-item"><a href="/?route=Admin\Syncdevices" >Sync Devices</a></li>';
+				}
+				if (\OSM\Tools\Config::get('enableOneRoster')) {
+					echo '<li class="list-group-item"><a href="/?route=Admin\Synconeroster" >Sync One Roster</a></li>';
+				}
+				echo '<li class="list-group-item"><a href="/?route=Admin\Usagereport" >Usage Report</a></li>';
+				echo '<li class="list-group-item"><a href="/?route=Admin\Logviewer">View Log</a></li>';
+				echo '<li class="list-group-item"><a href="/?route=Monitor\Filterlog">View Browsing History</a></li>';
+				if (\OSM\Tools\Config::get('showNonEnterpriseDevices')){
+					echo '<li class="list-group-item"><a href="/?non-enterprise-device">Non Enterprise Devices</a></li>';
+				}
+				echo '<li class="list-group-item"><a href="/?route=Admin\Showall">Show All</a></li>';
+			}
+			echo '</ul>';
+			echo '</div>';
 			echo '</div>';
 		} else {
 			//user needs to login, show them the login screen
