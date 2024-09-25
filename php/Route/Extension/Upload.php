@@ -116,6 +116,12 @@ class Upload extends \OSM\Tools\Route {
 		}
 
 
+		//(de)activate disableGroups
+		if (\OSM\Tools\Config::get('disableGroups') != ($data['disableGroups'] ?? false)){
+			$toReturn['commands'][] = ['action'=>'setData','key'=>'disableGroups','value'=>\OSM\Tools\Config::get('disableGroups')];
+			$toReturn['commands'][] = ['action'=>'ungroupTabs'];
+		}
+
 		//(de)activate server side filter
 		if (\OSM\Tools\Config::get('filterViaServer') != ($data['filterViaServer'] ?? false)){
 			$toReturn['commands'][] = ['action'=>'setData','key'=>'filterViaServer','value'=>\OSM\Tools\Config::get('filterViaServer')];
