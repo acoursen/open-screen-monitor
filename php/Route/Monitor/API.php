@@ -129,11 +129,11 @@ class API extends \OSM\Tools\Route {
 
 		if ($action == 'info'){
 			$html = '';
-			$html .= '<b>IP: '.htmlentities(\OSM\Tools\TempDB::get('ip/'.$sessionID)).'</b>';
-			$html .= '<br /><b>Device ID: '.htmlentities(\OSM\Tools\TempDB::get('deviceID/'.$sessionID)).'</b>';
+			$html .= '<b>IP: '.htmlentities(\OSM\Tools\TempDB::get('ip/'.$sessionID) ?? '').'</b>';
+			$html .= '<br /><b>Device ID: '.htmlentities(\OSM\Tools\TempDB::get('deviceID/'.$sessionID) ?? '').'</b>';
 
 			$tabs = \OSM\Tools\TempDB::get('tabs/'.$sessionID);
-			$tabs = json_decode($tabs,true);
+			$tabs = json_decode($tabs ?? '',true);
 
 			if (is_array($tabs)){
 				foreach($tabs as $tab){
