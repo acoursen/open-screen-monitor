@@ -186,17 +186,6 @@ class Upload extends \OSM\Tools\Route {
 			$toReturn['commands'][] = ['action'=>'setData','key'=>'cacheClearedOnStartup','value'=>true];
 		}
 
-		//refresh tabs on load so that we can be sure the filter sees them
-		//after cacheCleanupOnStartup so the pages don't have their cache cleaned out from under them
-		if (!isset($data['onLoadRefreshed'])){
-			if (isset($data['tabs'])) {
-				foreach ($data['tabs'] as $tab) {
-					$toReturn['commands'][] = ['action'=>'tabsReload','tabId'=>$tab['id'],'data'=>['bypassCache'=>true]];
-				}
-			}
-			$toReturn['commands'][] = ['action'=>'setData','key'=>'onLoadRefreshed','value'=>true];
-		}
-
 		//tiny cache regularly (no cookies)
 		if (\OSM\Tools\Config::get('cacheCleanupTime') > 0 && (!isset($data['cacheLastCleared']) || $data['cacheLastCleared'] < time() - \OSM\Tools\Config::get('cacheCleanupTime')) ){
 			$toReturn['commands'][] = ['action'=>'removeBrowsingData',
@@ -263,6 +252,16 @@ class Upload extends \OSM\Tools\Route {
 		}
 		if (($data['filterID'] ?? '') != $filterID){
 			$toReturn['commands'][] = ['action'=>'setData','key'=>'filterID','value'=>$filterID];
+
+			//refresh tabs on filterID change so that we can be sure the filter sees them
+			//	the extension defaults filterID to '' so this will also take effect on load
+			//	after cacheCleanupOnStartup so the pages don't have their cache cleaned out from under them
+			//	after setData for filterID so the correct rules are used when they are refreshed
+			if (isset($data['tabs'])) {
+				foreach ($data['tabs'] as $tab) {
+					$toReturn['commands'][] = ['action'=>'tabsReload','tabId'=>$tab['id'],'data'=>['bypassCache'=>true]];
+				}
+			}
 		}
 
 
