@@ -56,6 +56,7 @@ class Config {
 			self::$config['cacheCleanupExclude'] = [];
 			self::$config['disableGroups'] = false;
 			self::$config['debug'] = true;
+			self::$config['oneRosterUserIgnore'] = [];
 
 			//overlay settings from database
 			$query = DB::select('tbl_config');
