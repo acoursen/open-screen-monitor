@@ -126,13 +126,18 @@ class Config {
 			return self::getGroup($groupID);
 		}
 
-		//otherwise look for a device group and set
+		//otherwise look for a device group
 		$deviceID = \OSM\Tools\TempDB::get('deviceID/'.$sessionID);
-		$rows = \OSM\Tools\DB::select('tbl_lab_device',['fields'=>['deviceid'=>$deviceID]]);
-		if ($groupID = ($rows[0]['path'] ?? false)){
-			$groupID = 'lab{'.$groupID.'}';
-			\OSM\Tools\TempDB::set('groupID/'.$sessionID, $groupID, \OSM\Tools\Config::get('userGroupTimeout'));
-			return self::getGroup($groupID);
+		$lab = \OSM\Tools\TempDB::get('lab/'.bin2hex($deviceID));
+		if ($lab == ''){
+			$rows = \OSM\Tools\DB::select('tbl_lab_device',['fields'=>['deviceid'=>$deviceID]]);
+			$lab = ($rows[0]['path'] ?? '');
+			if ($lab != ''){
+				\OSM\Tools\TempDB::set('lab/'.bin2hex($deviceID), $lab, \OSM\Tools\Config::get('userGroupTimeout'));
+			}
+		}
+		if ($lab != ''){
+			return self::getGroup('lab{'.$lab.'}');
 		}
 
 		//todo figure out default

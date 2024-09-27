@@ -56,6 +56,12 @@ class Syncdevices extends \OSM\Tools\Route {
 			if (file_exists($dataDir.'/custom/sync-append.php')){
 				require_once($dataDir.'/custom/sync-append.php');
 			}
+
+			//clear any cached labs
+			$labs = \OSM\Tools\TempDB::scan('lab/*');
+			foreach($labs as $key => $value){
+				\OSM\Tools\TempDB::del($key);
+			}
 		} else {
 			echo "<h1>No access to chrome devices</h1>";
 		}
