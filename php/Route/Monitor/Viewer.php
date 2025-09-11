@@ -17,6 +17,7 @@ class Viewer extends \OSM\Tools\Route {
 		$this->title = 'Open Screen Monitor - '.htmlentities($group['name']);
 
 		$this->css = '
+textarea {padding: 5px;}
 .leftHeader input {margin:5px;}
 .content {display:flex;background-color: #C0C0C0;min-height:100%;}
 #activedevs {text-align:center;display: flex;flex-wrap: wrap;justify-content: center;}
@@ -445,14 +446,17 @@ div.notInGroup {border: 5px solid yellow !important;}
 					$("#filterlistdefaultdeny").hide();
 					$("#filterlistdefaultallow").hide();
 					$("#filterlistheader").show();
+					$("textarea[name=reason-defaultallow]").removeAttr("required");
 
 					if (this.value == "defaultdeny"){
 						$("#divApps").show();
 						$("#filterlistdefaultdeny").show();
+						$("textarea[name=reason-defaultallow]").val("");
 					}
 					if (this.value == "defaultallow"){
 						$("#divApps").hide();
 						$("#filterlistdefaultallow").show();
+						$("textarea[name=reason-defaultallow]").attr("required","required");
 					}
 				});
 				$("input[name=filtermode]:checked").change();
@@ -518,7 +522,9 @@ div.notInGroup {border: 5px solid yellow !important;}
 		echo '<textarea name="filterlist-defaultdeny" style="text-align:left;width: 90%;height:200px;">'.htmlentities($groupConfig['filterlist-defaultdeny']).'</textarea>';
 		echo '</div>';
 		echo '<div id="filterlistdefaultallow">';
-		echo '<b>Exceptions (Blocked Sites)<br>One per line<br >example: https://www.google.com/</b><br />';
+		echo '<b>Reason for Research Mode</b><br />';
+		echo '<textarea name="reason-defaultallow" style="text-align:left;width: 90%;height:200px;" placeholder="i.e. research topic a/b/c or site/app not working">'.htmlentities($groupConfig['reason-defaultallow']).'</textarea>';
+		echo '<br /><br /><b>Exceptions (Blocked Sites)<br>One per line<br >example: https://www.google.com/</b><br />';
 		echo '<textarea name="filterlist-defaultallow" style="text-align:left;width: 90%;height:200px;">'.htmlentities($groupConfig['filterlist-defaultallow']).'</textarea>';
 		echo '</div>';
 		echo '<input type="submit" id="applyfilter" value="Apply Changes" class="btn btn-primary" />';

@@ -84,6 +84,7 @@ class Config {
 			'filtermode' => 'defaultallow',
 			'filterlist-defaultdeny' => '',
 			'filterlist-defaultallow' => '',
+			'reason-defaultallow' => '',
 			'lastUpdated' => 0,
 		];
 

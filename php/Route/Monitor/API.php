@@ -216,19 +216,30 @@ class API extends \OSM\Tools\Route {
 		if ($action == 'filter'){
 			//authtenticate this request
 			$groupID = $_POST['groupID'] ?? '';
-			if (!isset($_SESSION['groups'][$groupID])){http_repsonse_code(400);die('Invalid Request');}
+			if (!isset($_SESSION['groups'][$groupID])){http_response_code(400);die('Invalid Request');}
 
 			$filtermode = $_POST['filtermode'] ?? '';
 			if (!in_array($filtermode,['defaultallow','defaultdeny'])){http_response_code(400);die('Invalid Request');}
 
 			$defaultdeny = $_POST['filterlist-defaultdeny'] ?? '';
 			$defaultallow = $_POST['filterlist-defaultallow'] ?? '';
+			$reason = $_POST['reason-defaultallow'] ?? '';
 			//only allow printable characters and new lines
 			$defaultdeny = preg_replace('/[\x00-\x09\x20\x0B-\x1F\x7F-\xFF]/', '', $defaultdeny);
 			$defaultallow= preg_replace('/[\x00-\x09\x20\x0B-\x1F\x7F-\xFF]/', '', $defaultallow);
 			//let us do a second pass to drop empty lines and correctly format
 			$defaultdeny = trim(preg_replace('/\n+/', "\n", $defaultdeny));
 			$defaultallow = trim(preg_replace('/\n+/', "\n", $defaultallow));
+			$reason = trim(preg_replace('/\n+/', "\n", $reason));
+
+			if ($filtermode == 'defaultallow'){
+				if ($reason == ''){
+					http_response_code(400);
+					die('Invalid Request: Reason required');
+				}
+			} else {
+				$reason = '';
+			}
 
 
 			\OSM\Tools\DB::beginTransaction();
@@ -242,12 +253,14 @@ class API extends \OSM\Tools\Route {
 			\OSM\Tools\DB::updateInsert('tbl_group_config',['groupid'=>$groupID,'name'=>'filtermode'],['value'=>$filtermode]);
 			\OSM\Tools\DB::updateInsert('tbl_group_config',['groupid'=>$groupID,'name'=>'filterlist-defaultdeny'],['value'=>$defaultdeny]);
 			\OSM\Tools\DB::updateInsert('tbl_group_config',['groupid'=>$groupID,'name'=>'filterlist-defaultallow'],['value'=>$defaultallow]);
+			\OSM\Tools\DB::updateInsert('tbl_group_config',['groupid'=>$groupID,'name'=>'reason-defaultallow'],['value'=>$reason]);
 			\OSM\Tools\DB::updateInsert('tbl_group_config',['groupid'=>$groupID,'name'=>'lastUpdated'],['value'=>time()]);
 
 			\OSM\Tools\Log::add('monitor.filter',$groupID,[
 				'filtermode'=>$filtermode,
 				'defaultdeny'=>$defaultdeny,
 				'defaultallow'=>$defaultallow,
+				'reason'=>$reason,
 				'apps'=> $apps,
 			]);
 
