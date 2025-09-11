@@ -170,7 +170,7 @@ class Route {
 		foreach($rows as $row){
 			$niceName = [];
 			foreach($row as $i => $value) {
-				if (in_array($i,['deviceid','path','lastSynced'])){continue;}
+				if (in_array($i,['deviceid','path','lastSynced','serialNumber'])){continue;}
 				if ($value == ''){continue;}
 				$niceName[] = $value;
 			}
@@ -185,7 +185,7 @@ class Route {
 		foreach($rows as $row){
 			$niceName = [];
 			foreach($row as $i => $value) {
-				if (in_array($i,['deviceid','path','lastSynced'])){continue;}
+				if (in_array($i,['deviceid','path','lastSynced','serialNumber'])){continue;}
 				if ($value == ''){continue;}
 				$niceName[] = $value;
 			}

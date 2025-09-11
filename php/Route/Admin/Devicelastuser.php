@@ -77,6 +77,7 @@ class Devicelastuser extends \OSM\Tools\Route {
 		}
 
 
+		echo '<br /><br />';
 		echo '<form method="post">';
 		echo 'Device: <select name="deviceid">';
 			echo '<option></option>';
@@ -84,7 +85,19 @@ class Devicelastuser extends \OSM\Tools\Route {
 				echo '<option value="'.htmlentities($deviceid).'">'.htmlentities($devicename).'</option>';
 			}
 			echo '</select>';
-		echo ' <input type="submit" value="Search" />';
+		echo '<br /><input type="submit" value="Search" />';
+		echo '</form>';
+
+		echo '<br /><br />';
+		echo '<form method="post">';
+		echo 'Serial Number: <select name="deviceid">';
+			echo '<option></option>';
+			$rows = \OSM\Tools\DB::select('tbl_lab_device',['order'=>'serialNumber','where'=>'serialNumber <> ""']);
+			foreach($rows as $row){
+				echo '<option value="'.htmlentities($row['deviceid']).'">'.htmlentities($row['serialNumber']).'</option>';
+			}
+			echo '</select>';
+		echo '<br /><input type="submit" value="Search" />';
 		echo '</form>';
 	}
 }
