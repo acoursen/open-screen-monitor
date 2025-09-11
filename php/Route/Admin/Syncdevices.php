@@ -33,7 +33,8 @@ class Syncdevices extends \OSM\Tools\Route {
 						'user' => trim($device['annotatedUser'] ?? ''),
 						'location' => trim($device['annotatedLocation'] ?? ''),
 						'assetid' => trim($device['annotatedAssetId'] ?? ''),
-						'lastSynced'=>$syncedTimestamp,
+						'serialNumber' => trim($device['serialNumber'] ?? ''),
+						'lastSynced' => $syncedTimestamp,
 					];
 				}
 

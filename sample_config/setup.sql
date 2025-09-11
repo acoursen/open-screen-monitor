@@ -58,6 +58,7 @@ CREATE TABLE `tbl_lab_device` (
   `user` varchar(127) NOT NULL DEFAULT '',
   `location` varchar(127) NOT NULL DEFAULT '',
   `assetid` varchar(127) NOT NULL DEFAULT '',
+  `serialNumber` varchar(127) NOT NULL DEFAULT '',
   `lastSynced` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`deviceid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
