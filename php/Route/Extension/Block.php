@@ -10,6 +10,12 @@ class Block extends \OSM\Tools\Route {
 		$data = gzuncompress($data);
 		$data = json_decode($data,true);
 
+		$data['sn'] = '';
+		$rows = \OSM\Tools\DB::select('tbl_lab_device',['where'=>'deviceid = :deviceid','bindings'=>[':deviceid'=>($data['deviceID'] ?? '')]]);
+		foreach($rows as $row){
+			$data['sn'] = $row['serialNumber'];
+		}
+
 		//allow custom hooking here
 		//make sure to set restrictive permissions on this file
 		if (file_exists($dataDir.'/custom/block-prepend.php')){
@@ -31,6 +37,7 @@ class Block extends \OSM\Tools\Route {
 		echo '<tr><th>Filter Search</th><td>'.htmlentities($data['search'] ?? '').'</td></tr>';
 		echo '<tr><th>Username</th><td>'.htmlentities($data['username'] ?? '').'</td></tr>';
 		echo '<tr><th>Device ID</th><td>'.htmlentities($data['deviceID'] ?? '').'</td></tr>';
+		echo '<tr><th>Serial Number</th><td>'.htmlentities($data['sn'] ?? '').'</td></tr>';
 		echo '<tr><th>Resource Type</th><td>'.htmlentities($data['type'] ?? '').'</td></tr>';
 		echo '<tr><th>IP</th><td>'.$_SERVER['REMOTE_ADDR'].'</td></tr>';
 		echo '</table>';
