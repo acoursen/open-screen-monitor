@@ -454,11 +454,7 @@ class API extends \OSM\Tools\Route {
 
 
 	public function action(){
-		//check for api header
-		$apikey = $_SERVER['HTTP_X_OSMKEY'] ?? '';
-		if ($apikey != '' && in_array($apikey,\OSM\Tools\Config::get('apiSecrets'))){
-			$_SESSION['api'] = true;
-		} else {
+		if (!($_SESSION['api'] ?? false)){
 			$this->requireLogin(false);
 		}
 

@@ -4,7 +4,18 @@ namespace OSM;
 require_once('../config.php');
 
 //we will need a session everywhere that this page goes
+if (!file_exists($dataDir.'/clients/sessions-php')) mkdir($dataDir.'/clients/sessions-php',0755);
+session_save_path($dataDir.'/clients/sessions-php');
 session_start();
+
+//check for api header
+$_SESSION['apikey'] = $_SERVER['HTTP_X_OSMKEY'] ?? '';
+if ($_SESSION['apikey'] != '' && in_array($_SESSION['apikey'],\OSM\Tools\Config::get('apiSecrets'))){
+        $_SESSION['api'] = true;
+} else {
+	$_SESSION['api'] = false;
+}
+
 
 if (!isset($_GET['route'])){
 	if (isset($_GET['logout'])) {
