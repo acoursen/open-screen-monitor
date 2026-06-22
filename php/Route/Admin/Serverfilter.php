@@ -38,6 +38,7 @@ class Serverfilter extends \OSM\Tools\Route {
 			table.info {margin:auto;}
 			table.data {margin:auto;padding:10px;width:100%;}
 			tr.section td {padding:40px;text-align:center;font-weight:bold;}
+			tr td:nth-child(n+6):nth-child(-n+10) {word-break: break-all;}
 		';
 
 		echo '<h2 style="text-align:center;">Rules</h2>';

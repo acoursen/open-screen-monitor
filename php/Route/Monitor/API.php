@@ -416,8 +416,9 @@ class API extends \OSM\Tools\Route {
 				\OSM\Tools\Log::add('monitor.screenshot',$logTarget,$logData);
 
 				$text = "Screenshot: ".date("Y-m-d h:i a")."\r\n\r\n";
-				$username = \OSM\Tools\TempDB::get('username/'.$sessionID);
-				$text .= "Username: ".$username."\r\n";
+				$email = \OSM\Tools\TempDB::get('email/'.$sessionID);
+				$text .= "Email: ".$email."\r\n";
+				$text .= "SessionID: ".$sessionID."\r\n";
 				$tabs = \OSM\Tools\TempDB::get('tabs/'.$sessionID);
 				$tabs = json_decode($tabs,true);
 				foreach ($tabs as $tab){

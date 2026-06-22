@@ -40,7 +40,7 @@ if (!isset($_GET['route'])){
 	} elseif (isset($_GET['non-enterprise-device']) && Tools\Google::checkToken($_SESSION['token']) && $_SESSION['admin']){
 		$_SESSION['allowedclients'] = ['non-enterprise-device'=>'Non Enterprise Devices'];
 		$_SESSION['lab'] = 'Non Enterprise Devices';
-		header('Location: /?route=Monitor\Viewer');
+		header('Location: /?route=Monitor\Viewer&class=non-enterprise-device');
 		die();
 	} elseif (isset($_GET['upload'])){
 		$_GET['route'] = 'Extension\\Upload';

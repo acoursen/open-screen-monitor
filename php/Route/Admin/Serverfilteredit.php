@@ -75,8 +75,8 @@ class Serverfilteredit extends \OSM\Tools\Route {
 			echo '</select></td></tr>';
 		echo '<tr><td>Username</td><td><input name="rule[username]" value="'.htmlentities($data['username'] ?? '').'" /></td></tr>';
 		echo '<tr><td>Subnet</td><td><input name="rule[subnet]" maxlength="18" value="'.htmlentities($data['subnet'] ?? '').'" /></td></tr>';
-		echo '<tr><td>Initiator</td><td><input name="rule[initiator]" value="'.htmlentities($data['initiator'] ?? '').'" /></td></tr>';
-		echo '<tr><td>App Name</td><td><input name="rule[appName]" value="'.htmlentities($data['appName'] ?? '').'" /></td></tr>';
+		echo '<tr><td>Initiator<br><br>For SCREENSCRAPE<br>trigger string[|trigger string]...[,count threshold]</td><td><input name="rule[initiator]" value="'.htmlentities($data['initiator'] ?? '').'" /></td></tr>';
+		echo '<tr><td>App Name<br><br>For SCREENSCRAPE<br>alert recipent email</td><td><input name="rule[appName]" value="'.htmlentities($data['appName'] ?? '').'" /></td></tr>';
 		echo '<tr><td>Comment</td><td><textarea name="rule[comment]">'.htmlentities($data['comment'] ?? '').'</textarea></td></tr>';
 		echo '<tr><td></td><td><input type="submit" /></td>';
 		echo '</table>';
